@@ -54,38 +54,40 @@
         uuid = null;
     }
 
+    var FCW_FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif";
     var style = document.createElement("style");
     style.textContent =
         "@keyframes fcw-pop{0%{transform:translateY(16px) scale(.96);opacity:0}100%{transform:translateY(0) scale(1);opacity:1}}" +
         "@keyframes fcw-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}" +
         "@keyframes fcw-pulse{0%,100%{box-shadow:0 12px 32px -8px rgba(0,0,0,.25),0 0 0 0 var(--fcw-color,#6366f1)}50%{box-shadow:0 12px 32px -8px rgba(0,0,0,.25),0 0 0 10px rgba(99,102,241,0)}}" +
-        ".fcw-chat-btn{position:fixed;width:60px;height:60px;border-radius:50%;border:0;cursor:pointer;box-shadow:0 12px 32px -8px rgba(0,0,0,.28),0 2px 6px rgba(0,0,0,.12);z-index:2147483646;display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;background:var(--fcw-color,#6366f1);transition:transform .2s ease,box-shadow .2s ease;animation:fcw-pulse 3s ease-in-out infinite}" +
+        ".fcw-chat-btn,.fcw-chat-panel{all:initial;font-family:" + FCW_FONT + ";-webkit-font-smoothing:antialiased;color-scheme:light}" +
+        ".fcw-chat-btn,.fcw-chat-btn *,.fcw-chat-panel *{box-sizing:border-box;font-family:inherit;text-transform:none;letter-spacing:normal;font-variant:normal;font-style:normal;text-decoration:none;text-indent:0;text-shadow:none;margin:0;padding:0;border:0;line-height:normal;color:inherit}" +
+        ".fcw-chat-btn{position:fixed;width:60px;height:60px;border-radius:50%;cursor:pointer;box-shadow:0 12px 32px -8px rgba(0,0,0,.28),0 2px 6px rgba(0,0,0,.12);z-index:2147483646;display:flex;align-items:center;justify-content:center;color:#fff;background:var(--fcw-color,#6366f1);transition:transform .2s ease,box-shadow .2s ease;animation:fcw-pulse 3s ease-in-out infinite}" +
         ".fcw-chat-btn:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 16px 40px -8px rgba(0,0,0,.35),0 4px 12px rgba(0,0,0,.14)}" +
         ".fcw-chat-btn:active{transform:scale(.96)}" +
         ".fcw-chat-btn svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}" +
-        ".fcw-chat-panel{position:fixed;width:380px;max-width:calc(100vw - 24px);height:560px;max-height:calc(100vh - 120px);background:#fff;border-radius:20px;box-shadow:0 24px 56px -12px rgba(0,0,0,.28),0 2px 8px rgba(0,0,0,.08);z-index:2147483647;display:none;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;-webkit-font-smoothing:antialiased}" +
+        ".fcw-chat-panel{position:fixed;width:380px;max-width:calc(100vw - 24px);height:560px;max-height:calc(100vh - 120px);background:#fff;color:#1a1b1f;border-radius:20px;box-shadow:0 24px 56px -12px rgba(0,0,0,.28),0 2px 8px rgba(0,0,0,.08);z-index:2147483647;display:none;flex-direction:column;overflow:hidden;font-size:14px}" +
         ".fcw-chat-panel.open{display:flex;animation:fcw-pop .22s cubic-bezier(.2,.8,.2,1)}" +
-        ".fcw-chat-header{padding:16px 18px;color:#fff;display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:15px;background:var(--fcw-color,#6366f1);position:relative}" +
-        ".fcw-chat-header::after{content:'';position:absolute;left:0;right:0;bottom:-10px;height:10px;background:inherit;-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.15),transparent);mask-image:linear-gradient(to bottom,rgba(0,0,0,.15),transparent);pointer-events:none}" +
-        ".fcw-chat-close{background:transparent;border:0;color:#fff;cursor:pointer;font-size:20px;line-height:1;padding:6px;border-radius:8px;transition:background .15s ease;opacity:.85}" +
+        ".fcw-chat-header{padding:16px 18px;color:#fff;display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:15px;background:var(--fcw-color,#6366f1);flex-shrink:0}" +
+        ".fcw-chat-close{background:transparent;color:#fff;cursor:pointer;font-size:20px;line-height:1;padding:6px;border-radius:8px;transition:background .15s ease;opacity:.85}" +
         ".fcw-chat-close:hover{background:rgba(255,255,255,.18);opacity:1}" +
         ".fcw-chat-body{flex:1;overflow-y:auto;padding:16px 14px;background:#f7f8fa;display:flex;flex-direction:column;gap:6px;scroll-behavior:smooth}" +
         ".fcw-chat-body::-webkit-scrollbar{width:6px}" +
         ".fcw-chat-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:3px}" +
         ".fcw-chat-body::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.25)}" +
-        ".fcw-chat-msg{max-width:78%;padding:9px 13px;font-size:14px;line-height:1.45;word-wrap:break-word;animation:fcw-fade .18s ease-out}" +
+        ".fcw-chat-msg{max-width:78%;padding:9px 13px;font-size:14px;line-height:1.45;word-wrap:break-word;animation:fcw-fade .18s ease-out;white-space:pre-wrap}" +
         ".fcw-chat-msg.visitor{align-self:flex-end;color:#fff;background:var(--fcw-color,#6366f1);border-radius:16px 16px 4px 16px;box-shadow:0 1px 2px rgba(0,0,0,.08)}" +
         ".fcw-chat-msg.agent{align-self:flex-start;background:#fff;color:#1a1b1f;border-radius:16px 16px 16px 4px;box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04)}" +
-        ".fcw-chat-msg.system{align-self:center;max-width:90%;background:rgba(0,0,0,.04);color:#4b5563;font-size:12.5px;text-align:center;padding:7px 14px;border-radius:999px;font-style:normal}" +
-        ".fcw-chat-input{border-top:1px solid rgba(0,0,0,.06);padding:10px 10px 12px;display:flex;gap:8px;background:#fff;align-items:flex-end}" +
-        ".fcw-chat-input textarea{flex:1;resize:none;border:1px solid rgba(0,0,0,.1);border-radius:14px;padding:10px 14px;font-family:inherit;font-size:14px;line-height:1.4;max-height:100px;background:#f7f8fa;color:#1a1b1f;outline:none;transition:border-color .15s ease,box-shadow .15s ease,background .15s ease}" +
+        ".fcw-chat-msg.system{align-self:center;max-width:90%;background:rgba(0,0,0,.04);color:#4b5563;font-size:12.5px;text-align:center;padding:7px 14px;border-radius:999px}" +
+        ".fcw-chat-input{border-top:1px solid rgba(0,0,0,.06);padding:10px 10px 12px;display:flex;gap:8px;background:#fff;align-items:flex-end;flex-shrink:0}" +
+        ".fcw-chat-input textarea{flex:1;resize:none;border:1px solid rgba(0,0,0,.1);border-radius:14px;padding:10px 14px;font-family:inherit;font-size:14px;line-height:1.4;max-height:100px;background:#f7f8fa;color:#1a1b1f;outline:none;transition:border-color .15s ease,box-shadow .15s ease,background .15s ease;-webkit-appearance:none;appearance:none}" +
+        ".fcw-chat-input textarea::placeholder{color:#9ca3af;text-transform:none;letter-spacing:normal;font-weight:400}" +
         ".fcw-chat-input textarea:focus{border-color:var(--fcw-color,#6366f1);background:#fff;box-shadow:0 0 0 3px rgba(99,102,241,.12)}" +
-        ".fcw-chat-send{border:0;border-radius:12px;padding:0 16px;height:40px;color:#fff;cursor:pointer;font-weight:600;font-size:14px;background:var(--fcw-color,#6366f1);transition:transform .1s ease,filter .15s ease;white-space:nowrap}" +
+        ".fcw-chat-send{border-radius:12px;padding:0 16px;height:40px;color:#fff;cursor:pointer;font-weight:600;font-size:14px;background:var(--fcw-color,#6366f1);transition:transform .1s ease,filter .15s ease;white-space:nowrap;-webkit-appearance:none;appearance:none}" +
         ".fcw-chat-send:hover{filter:brightness(1.08)}" +
         ".fcw-chat-send:active{transform:scale(.97)}" +
         ".fcw-chat-send:disabled{opacity:.5;cursor:not-allowed;filter:none}" +
-        "@media(max-width:480px){.fcw-chat-panel{width:calc(100vw - 16px);height:calc(100vh - 96px);border-radius:16px}.fcw-chat-btn{width:56px;height:56px}}" +
-        "@media(prefers-color-scheme:dark){.fcw-chat-panel{background:#1a1b1f;color:#e6e7ea}.fcw-chat-body{background:#111214}.fcw-chat-msg.agent{background:#24262b;color:#e6e7ea;box-shadow:0 1px 2px rgba(0,0,0,.3),0 0 0 1px rgba(255,255,255,.04)}.fcw-chat-msg.system{background:rgba(255,255,255,.05);color:#9ca3af}.fcw-chat-input{background:#1a1b1f;border-top-color:rgba(255,255,255,.06)}.fcw-chat-input textarea{background:#111214;color:#e6e7ea;border-color:rgba(255,255,255,.08)}.fcw-chat-input textarea:focus{background:#1a1b1f}}";
+        "@media(max-width:480px){.fcw-chat-panel{width:calc(100vw - 16px);height:calc(100vh - 96px);border-radius:16px}.fcw-chat-btn{width:56px;height:56px}}";
     document.head.appendChild(style);
 
     var button = document.createElement("button");
