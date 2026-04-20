@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-use Madbox99\FilamentChatWidget\Http\Controllers\ChatWidgetController;
-use Madbox99\FilamentChatWidget\Http\Middleware\HandleChatWidgetCors;
 use Illuminate\Support\Facades\Route;
+use Madbox99\FilamentChatWidget\Http\Controllers\ChatWidgetController;
+use Madbox99\FilamentChatWidget\Http\Controllers\EmbedScriptController;
+use Madbox99\FilamentChatWidget\Http\Middleware\HandleChatWidgetCors;
 
 $prefix = (string) config('filament-chat-widget.routes.prefix', 'chat');
 $middleware = (array) config('filament-chat-widget.routes.middleware', [HandleChatWidgetCors::class]);
@@ -13,6 +14,10 @@ $throttle = (array) config('filament-chat-widget.routes.throttle', []);
 Route::middleware($middleware)
     ->prefix($prefix)
     ->group(function () use ($throttle): void {
+        Route::get('embed.js', EmbedScriptController::class)
+            ->middleware('throttle:' . ($throttle['embed'] ?? '120,1'))
+            ->name('chat.embed.script');
+
         Route::get('widget/{slug}', [ChatWidgetController::class, 'config'])
             ->middleware('throttle:' . ($throttle['config'] ?? '60,1'))
             ->name('chat.widget.config');

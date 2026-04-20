@@ -16,12 +16,15 @@ Drop a `<script>` tag into any HTML page (WordPress, static site, SPA) and manag
 ## Installation
 
 ```bash
-composer require cegem360/filament-chat-widget
+composer require madbox-99/filament-chat-widget
 php artisan vendor:publish --tag=filament-chat-widget-config
-php artisan vendor:publish --tag=filament-chat-widget-assets
-php artisan vendor:publish --tag=filament-chat-widget-migrations
 php artisan migrate
 ```
+
+The embeddable JS is served directly from the `vendor/` directory by a
+Laravel route (`/chat/embed.js`), so there is **no asset publish step**.
+New package versions propagate to already-embedded pages automatically
+via ETag revalidation.
 
 ## Configuration
 
@@ -52,7 +55,7 @@ public function panel(Panel $panel): Panel
 From the widget edit page in the Filament admin, copy the embed snippet:
 
 ```html
-<script src="https://your-app.test/vendor/filament-chat-widget/chat-widget.js"
+<script src="https://your-app.test/chat/embed.js"
         data-team="{tenant_slug}" async></script>
 ```
 

@@ -57,7 +57,7 @@ class EditChatWidget extends EditRecord
 
     private function buildScriptSnippet(ChatWidget $record): string
     {
-        $src = url((string) config('filament-chat-widget.widget_script_path', '/vendor/filament-chat-widget/chat-widget.js'));
+        $src = route('chat.embed.script');
 
         return '<script src="' . $src . '" data-team="' . $this->resolveSlug($record) . '" async></script>';
     }
