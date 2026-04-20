@@ -26,6 +26,7 @@ return [
         'messaging' => 'Üzenetek',
         'business_hours' => 'Nyitvatartás',
         'conversation_details' => 'Beszélgetés részletei',
+        'custom_css' => 'Egyedi CSS',
     ],
     'fields' => [
         'title' => 'Cím',
@@ -49,6 +50,8 @@ return [
         'sender' => 'Küldő',
         'read_at' => 'Olvasva',
         'sent_at' => 'Elküldve',
+        'custom_css' => 'Egyedi CSS',
+        'custom_css_help' => 'Felülírhatod a widget kinézetét a beágyazott oldalakon. Használható szelektorok: .fcw-chat-btn, .fcw-chat-panel, .fcw-chat-header, .fcw-chat-close, .fcw-chat-body, .fcw-chat-msg, .fcw-chat-msg.visitor, .fcw-chat-msg.agent, .fcw-chat-msg.system, .fcw-chat-input, .fcw-chat-input textarea, .fcw-chat-send. A var(--fcw-color) változó a widget elsődleges színét tartalmazza.',
     ],
     'positions' => [
         'bottom_right' => 'Jobbra lent',

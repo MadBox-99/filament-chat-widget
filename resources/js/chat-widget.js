@@ -56,29 +56,43 @@
 
     var style = document.createElement("style");
     style.textContent =
-        ".fcw-chat-btn{position:fixed;width:60px;height:60px;border-radius:50%;border:0;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:2147483646;display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;transition:transform .2s}" +
-        ".fcw-chat-btn:hover{transform:scale(1.05)}" +
-        ".fcw-chat-panel{position:fixed;width:360px;max-width:calc(100vw - 32px);height:520px;max-height:calc(100vh - 120px);background:#fff;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.25);z-index:2147483647;display:none;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}" +
-        ".fcw-chat-panel.open{display:flex}" +
-        ".fcw-chat-header{padding:14px 16px;color:#fff;display:flex;align-items:center;justify-content:space-between;font-weight:600}" +
-        ".fcw-chat-close{background:transparent;border:0;color:#fff;cursor:pointer;font-size:22px;line-height:1;padding:0 4px}" +
-        ".fcw-chat-body{flex:1;overflow-y:auto;padding:12px;background:#f7f7f8;display:flex;flex-direction:column;gap:8px}" +
-        ".fcw-chat-msg{max-width:80%;padding:8px 12px;border-radius:12px;font-size:14px;line-height:1.4;word-wrap:break-word}" +
-        ".fcw-chat-msg.visitor{align-self:flex-end;color:#fff}" +
-        ".fcw-chat-msg.agent,.fcw-chat-msg.system{align-self:flex-start;background:#fff;color:#222;border:1px solid #e5e5e5}" +
-        ".fcw-chat-intro{padding:16px;display:flex;flex-direction:column;gap:10px;font-size:14px;color:#333}" +
-        ".fcw-chat-intro input{padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:14px;width:100%;box-sizing:border-box}" +
-        ".fcw-chat-input{border-top:1px solid #e5e5e5;padding:8px;display:flex;gap:8px;background:#fff}" +
-        ".fcw-chat-input textarea{flex:1;resize:none;border:1px solid #ddd;border-radius:8px;padding:8px;font-family:inherit;font-size:14px;max-height:80px}" +
-        ".fcw-chat-send{border:0;border-radius:8px;padding:0 14px;color:#fff;cursor:pointer;font-weight:600;font-size:14px}" +
-        ".fcw-chat-send:disabled{opacity:.5;cursor:not-allowed}" +
-        "@media(max-width:480px){.fcw-chat-panel{width:calc(100vw - 16px);height:calc(100vh - 100px)}}";
+        "@keyframes fcw-pop{0%{transform:translateY(16px) scale(.96);opacity:0}100%{transform:translateY(0) scale(1);opacity:1}}" +
+        "@keyframes fcw-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}" +
+        "@keyframes fcw-pulse{0%,100%{box-shadow:0 12px 32px -8px rgba(0,0,0,.25),0 0 0 0 var(--fcw-color,#6366f1)}50%{box-shadow:0 12px 32px -8px rgba(0,0,0,.25),0 0 0 10px rgba(99,102,241,0)}}" +
+        ".fcw-chat-btn{position:fixed;width:60px;height:60px;border-radius:50%;border:0;cursor:pointer;box-shadow:0 12px 32px -8px rgba(0,0,0,.28),0 2px 6px rgba(0,0,0,.12);z-index:2147483646;display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;background:var(--fcw-color,#6366f1);transition:transform .2s ease,box-shadow .2s ease;animation:fcw-pulse 3s ease-in-out infinite}" +
+        ".fcw-chat-btn:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 16px 40px -8px rgba(0,0,0,.35),0 4px 12px rgba(0,0,0,.14)}" +
+        ".fcw-chat-btn:active{transform:scale(.96)}" +
+        ".fcw-chat-btn svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}" +
+        ".fcw-chat-panel{position:fixed;width:380px;max-width:calc(100vw - 24px);height:560px;max-height:calc(100vh - 120px);background:#fff;border-radius:20px;box-shadow:0 24px 56px -12px rgba(0,0,0,.28),0 2px 8px rgba(0,0,0,.08);z-index:2147483647;display:none;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;-webkit-font-smoothing:antialiased}" +
+        ".fcw-chat-panel.open{display:flex;animation:fcw-pop .22s cubic-bezier(.2,.8,.2,1)}" +
+        ".fcw-chat-header{padding:16px 18px;color:#fff;display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:15px;background:var(--fcw-color,#6366f1);position:relative}" +
+        ".fcw-chat-header::after{content:'';position:absolute;left:0;right:0;bottom:-10px;height:10px;background:inherit;-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.15),transparent);mask-image:linear-gradient(to bottom,rgba(0,0,0,.15),transparent);pointer-events:none}" +
+        ".fcw-chat-close{background:transparent;border:0;color:#fff;cursor:pointer;font-size:20px;line-height:1;padding:6px;border-radius:8px;transition:background .15s ease;opacity:.85}" +
+        ".fcw-chat-close:hover{background:rgba(255,255,255,.18);opacity:1}" +
+        ".fcw-chat-body{flex:1;overflow-y:auto;padding:16px 14px;background:#f7f8fa;display:flex;flex-direction:column;gap:6px;scroll-behavior:smooth}" +
+        ".fcw-chat-body::-webkit-scrollbar{width:6px}" +
+        ".fcw-chat-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:3px}" +
+        ".fcw-chat-body::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.25)}" +
+        ".fcw-chat-msg{max-width:78%;padding:9px 13px;font-size:14px;line-height:1.45;word-wrap:break-word;animation:fcw-fade .18s ease-out}" +
+        ".fcw-chat-msg.visitor{align-self:flex-end;color:#fff;background:var(--fcw-color,#6366f1);border-radius:16px 16px 4px 16px;box-shadow:0 1px 2px rgba(0,0,0,.08)}" +
+        ".fcw-chat-msg.agent{align-self:flex-start;background:#fff;color:#1a1b1f;border-radius:16px 16px 16px 4px;box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04)}" +
+        ".fcw-chat-msg.system{align-self:center;max-width:90%;background:rgba(0,0,0,.04);color:#4b5563;font-size:12.5px;text-align:center;padding:7px 14px;border-radius:999px;font-style:normal}" +
+        ".fcw-chat-input{border-top:1px solid rgba(0,0,0,.06);padding:10px 10px 12px;display:flex;gap:8px;background:#fff;align-items:flex-end}" +
+        ".fcw-chat-input textarea{flex:1;resize:none;border:1px solid rgba(0,0,0,.1);border-radius:14px;padding:10px 14px;font-family:inherit;font-size:14px;line-height:1.4;max-height:100px;background:#f7f8fa;color:#1a1b1f;outline:none;transition:border-color .15s ease,box-shadow .15s ease,background .15s ease}" +
+        ".fcw-chat-input textarea:focus{border-color:var(--fcw-color,#6366f1);background:#fff;box-shadow:0 0 0 3px rgba(99,102,241,.12)}" +
+        ".fcw-chat-send{border:0;border-radius:12px;padding:0 16px;height:40px;color:#fff;cursor:pointer;font-weight:600;font-size:14px;background:var(--fcw-color,#6366f1);transition:transform .1s ease,filter .15s ease;white-space:nowrap}" +
+        ".fcw-chat-send:hover{filter:brightness(1.08)}" +
+        ".fcw-chat-send:active{transform:scale(.97)}" +
+        ".fcw-chat-send:disabled{opacity:.5;cursor:not-allowed;filter:none}" +
+        "@media(max-width:480px){.fcw-chat-panel{width:calc(100vw - 16px);height:calc(100vh - 96px);border-radius:16px}.fcw-chat-btn{width:56px;height:56px}}" +
+        "@media(prefers-color-scheme:dark){.fcw-chat-panel{background:#1a1b1f;color:#e6e7ea}.fcw-chat-body{background:#111214}.fcw-chat-msg.agent{background:#24262b;color:#e6e7ea;box-shadow:0 1px 2px rgba(0,0,0,.3),0 0 0 1px rgba(255,255,255,.04)}.fcw-chat-msg.system{background:rgba(255,255,255,.05);color:#9ca3af}.fcw-chat-input{background:#1a1b1f;border-top-color:rgba(255,255,255,.06)}.fcw-chat-input textarea{background:#111214;color:#e6e7ea;border-color:rgba(255,255,255,.08)}.fcw-chat-input textarea:focus{background:#1a1b1f}}";
     document.head.appendChild(style);
 
     var button = document.createElement("button");
     button.className = "fcw-chat-btn";
     button.type = "button";
-    button.innerHTML = "&#128172;";
+    button.innerHTML =
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
     button.setAttribute("aria-label", "Chat");
 
     var panel = document.createElement("div");
@@ -106,21 +120,41 @@
         }
     }
 
+    function isValidColor(value) {
+        if (!value || typeof value !== "string") {
+            return false;
+        }
+        var test = document.createElement("div").style;
+        test.color = "";
+        test.color = value;
+        return test.color !== "";
+    }
+
     function applyColor() {
-        var color = (config && config.color) || "#6366f1";
-        button.style.background = color;
-        var header = panel.querySelector(".fcw-chat-header");
-        if (header) {
-            header.style.background = color;
+        var color = config && config.color;
+        if (!isValidColor(color)) {
+            color = "#6366f1";
         }
-        var visitorMsgs = panel.querySelectorAll(".fcw-chat-msg.visitor");
-        for (var i = 0; i < visitorMsgs.length; i++) {
-            visitorMsgs[i].style.background = color;
+        button.style.setProperty("--fcw-color", color);
+        panel.style.setProperty("--fcw-color", color);
+    }
+
+    var customStyleNode = null;
+    function applyCustomCss() {
+        var css = (config && config.custom_css) || "";
+        if (!css) {
+            if (customStyleNode && customStyleNode.parentNode) {
+                customStyleNode.parentNode.removeChild(customStyleNode);
+                customStyleNode = null;
+            }
+            return;
         }
-        var sendBtn = panel.querySelector(".fcw-chat-send");
-        if (sendBtn) {
-            sendBtn.style.background = color;
+        if (!customStyleNode) {
+            customStyleNode = document.createElement("style");
+            customStyleNode.setAttribute("data-fcw-custom", "1");
+            document.head.appendChild(customStyleNode);
         }
+        customStyleNode.textContent = css;
     }
 
     function escapeHtml(str) {
@@ -180,9 +214,6 @@
             var div = document.createElement("div");
             div.className = "fcw-chat-msg " + (m.sender_type || "agent");
             div.textContent = m.message;
-            if (m.sender_type === "visitor") {
-                div.style.background = (config && config.color) || "#6366f1";
-            }
             body.appendChild(div);
         }
         body.scrollTop = body.scrollHeight;
@@ -335,6 +366,7 @@
                 document.body.appendChild(panel);
                 applyPosition();
                 applyColor();
+                applyCustomCss();
             })
             .catch(function () {});
     }

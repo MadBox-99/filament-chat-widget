@@ -35,6 +35,7 @@ final class ChatWidgetController extends Controller
             'position' => $widget->position,
             'offline_message' => $widget->offline_message,
             'auto_reply_message' => $widget->auto_reply_message,
+            'custom_css' => $widget->getAttribute('custom_css'),
         ]);
     }
 

@@ -26,6 +26,7 @@ return [
         'messaging' => 'Messaging',
         'business_hours' => 'Business Hours',
         'conversation_details' => 'Conversation Details',
+        'custom_css' => 'Custom CSS',
     ],
     'fields' => [
         'title' => 'Title',
@@ -49,6 +50,8 @@ return [
         'sender' => 'Sender',
         'read_at' => 'Read At',
         'sent_at' => 'Sent At',
+        'custom_css' => 'Custom CSS',
+        'custom_css_help' => 'Override the widget appearance on embedded pages. Available selectors: .fcw-chat-btn, .fcw-chat-panel, .fcw-chat-header, .fcw-chat-close, .fcw-chat-body, .fcw-chat-msg, .fcw-chat-msg.visitor, .fcw-chat-msg.agent, .fcw-chat-msg.system, .fcw-chat-input, .fcw-chat-input textarea, .fcw-chat-send. Use var(--fcw-color) to reference the widget primary color.',
     ],
     'positions' => [
         'bottom_right' => 'Bottom Right',

@@ -64,6 +64,18 @@ final class ChatWidgetForm
                             ->valueLabel(__('filament-chat-widget::chat.fields.hours'))
                             ->columnSpanFull(),
                     ]),
+
+                Section::make(__('filament-chat-widget::chat.sections.custom_css'))
+                    ->description(__('filament-chat-widget::chat.fields.custom_css_help'))
+                    ->collapsed()
+                    ->schema([
+                        Textarea::make('custom_css')
+                            ->label(__('filament-chat-widget::chat.fields.custom_css'))
+                            ->rows(12)
+                            ->placeholder(".fcw-chat-btn { background: #111; }\n.fcw-chat-header { font-size: 16px; }")
+                            ->extraInputAttributes(['style' => 'font-family: ui-monospace, SFMono-Regular, monospace; font-size: 13px;'])
+                            ->columnSpanFull(),
+                    ]),
             ]);
     }
 }
