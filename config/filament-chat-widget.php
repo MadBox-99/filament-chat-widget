@@ -46,7 +46,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | A class implementing
-    | `Cegem360\FilamentChatWidget\Contracts\ChatWidgetTenantResolver`.
+    | `Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver`.
     | Override this if your app needs custom lookup logic (e.g. multi-column
     | slugs or domain-based resolution). Leave `null` to use the default
     | resolver which looks up `tenant_model` by `tenant_slug_column`.
@@ -84,7 +84,7 @@ return [
         | APIs consumed cross-origin, so session/CSRF middleware would
         | break them. Override only if you know what you're doing.
         */
-        'middleware' => [\Cegem360\FilamentChatWidget\Http\Middleware\HandleChatWidgetCors::class],
+        'middleware' => [\Madbox99\FilamentChatWidget\Http\Middleware\HandleChatWidgetCors::class],
 
         'throttle' => [
             'config' => '60,1',

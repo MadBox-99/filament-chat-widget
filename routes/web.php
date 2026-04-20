@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Cegem360\FilamentChatWidget\Http\Controllers\ChatWidgetController;
-use Cegem360\FilamentChatWidget\Http\Middleware\HandleChatWidgetCors;
+use Madbox99\FilamentChatWidget\Http\Controllers\ChatWidgetController;
+use Madbox99\FilamentChatWidget\Http\Middleware\HandleChatWidgetCors;
 use Illuminate\Support\Facades\Route;
 
 $prefix = (string) config('filament-chat-widget.routes.prefix', 'chat');

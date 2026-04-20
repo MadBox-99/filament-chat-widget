@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cegem360\FilamentChatWidget\Filament\Resources\ChatWidgets\Tables;
+namespace Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;

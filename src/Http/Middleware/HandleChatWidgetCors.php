@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cegem360\FilamentChatWidget\Http\Middleware;
+namespace Madbox99\FilamentChatWidget\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Cegem360\FilamentChatWidget\Filament\Resources\ChatWidgets;
+namespace Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets;
 
 use BackedEnum;
-use Cegem360\FilamentChatWidget\Filament\Resources\ChatWidgets\Pages\CreateChatWidget;
-use Cegem360\FilamentChatWidget\Filament\Resources\ChatWidgets\Pages\EditChatWidget;
-use Cegem360\FilamentChatWidget\Filament\Resources\ChatWidgets\Pages\ListChatWidgets;
-use Cegem360\FilamentChatWidget\Filament\Resources\ChatWidgets\Schemas\ChatWidgetForm;
-use Cegem360\FilamentChatWidget\Filament\Resources\ChatWidgets\Tables\ChatWidgetsTable;
-use Cegem360\FilamentChatWidget\Models\ChatWidget;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\Pages\CreateChatWidget;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\Pages\EditChatWidget;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\Pages\ListChatWidgets;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\Schemas\ChatWidgetForm;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\Tables\ChatWidgetsTable;
+use Madbox99\FilamentChatWidget\Models\ChatWidget;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;

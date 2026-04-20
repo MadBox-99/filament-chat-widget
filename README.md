@@ -36,7 +36,7 @@ Set your tenant model in `config/filament-chat-widget.php`:
 Register the plugin in your Filament panel provider:
 
 ```php
-use Cegem360\FilamentChatWidget\FilamentChatWidgetPlugin;
+use Madbox99\FilamentChatWidget\FilamentChatWidgetPlugin;
 
 public function panel(Panel $panel): Panel
 {
@@ -79,7 +79,7 @@ them. **You do not need to add CSRF exemptions** to `bootstrap/app.php`.
 
 ## Custom tenant resolver
 
-If the default Eloquent slug lookup isn't enough (e.g. domain-based resolution), implement `Cegem360\FilamentChatWidget\Contracts\ChatWidgetTenantResolver` and set:
+If the default Eloquent slug lookup isn't enough (e.g. domain-based resolution), implement `Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver` and set:
 
 ```php
 'tenant_resolver' => \App\Support\MyTenantResolver::class,

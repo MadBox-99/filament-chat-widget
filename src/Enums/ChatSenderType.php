@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cegem360\FilamentChatWidget\Enums;
+namespace Madbox99\FilamentChatWidget\Enums;
 
 use Filament\Support\Contracts\HasLabel;
 

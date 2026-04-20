@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Cegem360\FilamentChatWidget\Models;
+namespace Madbox99\FilamentChatWidget\Models;
 
-use Cegem360\FilamentChatWidget\Database\Factories\ChatWidgetFactory;
+use Madbox99\FilamentChatWidget\Database\Factories\ChatWidgetFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

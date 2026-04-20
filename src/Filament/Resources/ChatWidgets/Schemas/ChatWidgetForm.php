@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cegem360\FilamentChatWidget\Filament\Resources\ChatWidgets\Schemas;
+namespace Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\Schemas;
 
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\KeyValue;

@@ -1,5 +1,5 @@
 {
-    "name": "cegem360/filament-chat-widget",
+    "name": "madbox-99/filament-chat-widget",
     "description": "Embeddable chat widget for Laravel with a Filament v5 admin panel. Drop a JS snippet into any HTML page (WordPress, static site, SPA) and manage conversations from Filament.",
     "type": "library",
     "keywords": [
@@ -31,19 +31,19 @@
     },
     "autoload": {
         "psr-4": {
-            "Cegem360\\FilamentChatWidget\\": "src/",
-            "Cegem360\\FilamentChatWidget\\Database\\Factories\\": "database/factories/"
+            "Madbox99\\FilamentChatWidget\\": "src/",
+            "Madbox99\\FilamentChatWidget\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Cegem360\\FilamentChatWidget\\Tests\\": "tests/"
+            "Madbox99\\FilamentChatWidget\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Cegem360\\FilamentChatWidget\\FilamentChatWidgetServiceProvider"
+                "Madbox99\\FilamentChatWidget\\FilamentChatWidgetServiceProvider"
             ]
         }
     },

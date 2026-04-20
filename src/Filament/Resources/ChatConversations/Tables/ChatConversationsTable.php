@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Cegem360\FilamentChatWidget\Filament\Resources\ChatConversations\Tables;
+namespace Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\Tables;
 
-use Cegem360\FilamentChatWidget\Enums\ChatConversationStatus;
+use Madbox99\FilamentChatWidget\Enums\ChatConversationStatus;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Cegem360\FilamentChatWidget\Models;
+namespace Madbox99\FilamentChatWidget\Models;
 
-use Cegem360\FilamentChatWidget\Database\Factories\ChatMessageFactory;
-use Cegem360\FilamentChatWidget\Enums\ChatSenderType;
+use Madbox99\FilamentChatWidget\Database\Factories\ChatMessageFactory;
+use Madbox99\FilamentChatWidget\Enums\ChatSenderType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

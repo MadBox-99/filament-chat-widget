@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Cegem360\FilamentChatWidget\Filament\Resources\ChatConversations\RelationManagers;
+namespace Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\RelationManagers;
 
-use Cegem360\FilamentChatWidget\Enums\ChatSenderType;
-use Cegem360\FilamentChatWidget\Models\ChatConversation;
+use Madbox99\FilamentChatWidget\Enums\ChatSenderType;
+use Madbox99\FilamentChatWidget\Models\ChatConversation;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;

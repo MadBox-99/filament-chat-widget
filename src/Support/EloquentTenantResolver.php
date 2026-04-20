@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Cegem360\FilamentChatWidget\Support;
+namespace Madbox99\FilamentChatWidget\Support;
 
-use Cegem360\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
+use Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
 use Illuminate\Database\Eloquent\Model;
 
 final class EloquentTenantResolver implements ChatWidgetTenantResolver

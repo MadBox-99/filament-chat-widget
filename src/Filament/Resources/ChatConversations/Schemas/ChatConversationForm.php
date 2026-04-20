@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Cegem360\FilamentChatWidget\Filament\Resources\ChatConversations\Schemas;
+namespace Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\Schemas;
 
-use Cegem360\FilamentChatWidget\Enums\ChatConversationStatus;
+use Madbox99\FilamentChatWidget\Enums\ChatConversationStatus;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;

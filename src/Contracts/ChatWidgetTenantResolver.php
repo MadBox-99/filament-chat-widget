@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cegem360\FilamentChatWidget\Contracts;
+namespace Madbox99\FilamentChatWidget\Contracts;
 
 interface ChatWidgetTenantResolver
 {

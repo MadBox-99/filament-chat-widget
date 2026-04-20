@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Cegem360\FilamentChatWidget\Http\Controllers;
+namespace Madbox99\FilamentChatWidget\Http\Controllers;
 
-use Cegem360\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
-use Cegem360\FilamentChatWidget\Enums\ChatConversationStatus;
-use Cegem360\FilamentChatWidget\Enums\ChatSenderType;
-use Cegem360\FilamentChatWidget\Models\ChatConversation;
-use Cegem360\FilamentChatWidget\Models\ChatMessage;
-use Cegem360\FilamentChatWidget\Models\ChatWidget;
+use Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
+use Madbox99\FilamentChatWidget\Enums\ChatConversationStatus;
+use Madbox99\FilamentChatWidget\Enums\ChatSenderType;
+use Madbox99\FilamentChatWidget\Models\ChatConversation;
+use Madbox99\FilamentChatWidget\Models\ChatMessage;
+use Madbox99\FilamentChatWidget\Models\ChatWidget;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;

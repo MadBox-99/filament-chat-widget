@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Cegem360\FilamentChatWidget\Filament\Resources\ChatWidgets\Pages;
+namespace Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\Pages;
 
-use Cegem360\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
-use Cegem360\FilamentChatWidget\Filament\Resources\ChatWidgets\ChatWidgetResource;
-use Cegem360\FilamentChatWidget\Models\ChatWidget;
+use Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\ChatWidgetResource;
+use Madbox99\FilamentChatWidget\Models\ChatWidget;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\Textarea;

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Cegem360\FilamentChatWidget;
+namespace Madbox99\FilamentChatWidget;
 
-use Cegem360\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
-use Cegem360\FilamentChatWidget\Support\EloquentTenantResolver;
+use Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
+use Madbox99\FilamentChatWidget\Support\EloquentTenantResolver;
 use Illuminate\Support\ServiceProvider;
 
 final class FilamentChatWidgetServiceProvider extends ServiceProvider
