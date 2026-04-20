@@ -65,4 +65,10 @@ return [
         'script_snippet' => 'JavaScript widget',
         'script_snippet_help' => 'Illeszd be ezt a kódot a </body> tag elé bármely weboldalon.',
     ],
+    'feed' => [
+        'anonymous' => 'Névtelen látogató',
+        'empty' => 'Még nincs üzenet. Indíts beszélgetést lent.',
+        'placeholder' => 'Válasz gépelése (Enter = küldés)...',
+        'send' => 'Küldés',
+    ],
 ];

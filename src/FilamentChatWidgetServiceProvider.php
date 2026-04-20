@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentChatWidget;
 
-use Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
-use Madbox99\FilamentChatWidget\Support\EloquentTenantResolver;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
+use Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
+use Madbox99\FilamentChatWidget\Livewire\ChatConversationFeed;
+use Madbox99\FilamentChatWidget\Support\EloquentTenantResolver;
 
 final class FilamentChatWidgetServiceProvider extends ServiceProvider
 {
@@ -51,6 +53,10 @@ final class FilamentChatWidgetServiceProvider extends ServiceProvider
 
         $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'filament-chat-widget');
         $this->loadJsonTranslationsFrom(__DIR__ . '/../resources/lang');
+
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'filament-chat-widget');
+
+        Livewire::component('filament-chat-widget.chat-conversation-feed', ChatConversationFeed::class);
 
         $this->publishes([
             __DIR__ . '/../resources/lang/' => lang_path('vendor/filament-chat-widget'),

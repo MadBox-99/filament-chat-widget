@@ -13,6 +13,8 @@ class ViewChatConversation extends ViewRecord
 {
     protected static string $resource = ChatConversationResource::class;
 
+    protected string $view = 'filament-chat-widget::filament.pages.view-chat-conversation';
+
     #[Override]
     protected function getHeaderActions(): array
     {

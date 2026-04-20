@@ -65,4 +65,10 @@ return [
         'script_snippet' => 'JavaScript widget',
         'script_snippet_help' => 'Paste this snippet just before the closing </body> tag of any website.',
     ],
+    'feed' => [
+        'anonymous' => 'Anonymous visitor',
+        'empty' => 'No messages yet. Start the conversation below.',
+        'placeholder' => 'Type a reply and press Enter to send...',
+        'send' => 'Send',
+    ],
 ];
