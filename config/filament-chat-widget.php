@@ -118,6 +118,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Privacy / GDPR
+    |--------------------------------------------------------------------------
+    |
+    | The embedded widget is anonymous by default: it does not ask for a name
+    | or email, and the visitor IP is NOT stored unless explicitly enabled.
+    |
+    */
+    'privacy' => [
+        'store_visitor_ip' => false,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Filament Integration
     |--------------------------------------------------------------------------
     |

@@ -56,7 +56,7 @@ final class ChatWidgetController extends Controller
             $tenantForeignKey => $widget->getAttribute($tenantForeignKey),
             'visitor_name' => $validated['visitor_name'] ?? null,
             'visitor_email' => $validated['visitor_email'] ?? null,
-            'visitor_ip' => $request->ip(),
+            'visitor_ip' => (bool) config('filament-chat-widget.privacy.store_visitor_ip', false) ? $request->ip() : null,
             'status' => ChatConversationStatus::Open,
             'started_at' => now(),
             'last_message_at' => now(),

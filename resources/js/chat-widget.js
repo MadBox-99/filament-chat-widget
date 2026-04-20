@@ -138,23 +138,6 @@
         );
     }
 
-    function renderIntro() {
-        var welcome = (config && config.welcome_message) || "";
-        var labels = (config && config.labels) || {};
-        panel.innerHTML =
-            renderHeader() +
-            '<div class="fcw-chat-body"></div>' +
-            '<div class="fcw-chat-intro">' +
-            (welcome ? "<div>" + escapeHtml(welcome) + "</div>" : "") +
-            '<input type="text" class="fcw-chat-name" placeholder="' + escapeHtml(labels.name || "Name (optional)") + '" autocomplete="name">' +
-            '<input type="email" class="fcw-chat-email" placeholder="' + escapeHtml(labels.email || "Email (optional)") + '" autocomplete="email">' +
-            '<button type="button" class="fcw-chat-start fcw-chat-send" style="padding:10px">' + escapeHtml(labels.start || "Start conversation") + '</button>' +
-            "</div>";
-        applyColor();
-        panel.querySelector(".fcw-chat-close").addEventListener("click", closePanel);
-        panel.querySelector(".fcw-chat-start").addEventListener("click", startConversation);
-    }
-
     function renderConversation() {
         var labels = (config && config.labels) || {};
         panel.innerHTML =
@@ -205,20 +188,31 @@
         body.scrollTop = body.scrollHeight;
     }
 
-    function startConversation() {
-        var name = panel.querySelector(".fcw-chat-name").value.trim();
-        var email = panel.querySelector(".fcw-chat-email").value.trim();
-        var body = { slug: slug };
-        if (name) {
-            body.visitor_name = name;
+    function renderWelcome() {
+        var welcome = (config && config.welcome_message) || "";
+        if (!welcome) {
+            return;
         }
-        if (email) {
-            body.visitor_email = email;
+        var body = panel.querySelector(".fcw-chat-body");
+        if (!body || body.querySelector(".fcw-chat-welcome")) {
+            return;
+        }
+        var div = document.createElement("div");
+        div.className = "fcw-chat-msg system fcw-chat-welcome";
+        div.textContent = welcome;
+        body.appendChild(div);
+        body.scrollTop = body.scrollHeight;
+    }
+
+    function ensureConversation(callback) {
+        if (uuid) {
+            callback();
+            return;
         }
         fetch(url("/conversations"), {
             method: "POST",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
-            body: JSON.stringify(body),
+            body: JSON.stringify({ slug: slug }),
         })
             .then(function (r) {
                 return r.ok ? r.json() : Promise.reject(r);
@@ -228,32 +222,34 @@
                 try {
                     window.localStorage.setItem(storageKey, uuid);
                 } catch (e) {}
-                renderConversation();
                 appendMessages(data.messages || []);
                 startPolling();
+                callback();
             })
             .catch(function () {});
     }
 
     function sendMessage(text) {
         text = (text || "").trim();
-        if (!text || !uuid) {
+        if (!text) {
             return;
         }
-        fetch(url("/conversations/" + encodeURIComponent(uuid) + "/messages"), {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Accept: "application/json" },
-            body: JSON.stringify({ message: text }),
-        })
-            .then(function (r) {
-                return r.ok ? r.json() : Promise.reject(r);
+        ensureConversation(function () {
+            fetch(url("/conversations/" + encodeURIComponent(uuid) + "/messages"), {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Accept: "application/json" },
+                body: JSON.stringify({ message: text }),
             })
-            .then(function (data) {
-                if (data && data.message) {
-                    appendMessages([data.message]);
-                }
-            })
-            .catch(function () {});
+                .then(function (r) {
+                    return r.ok ? r.json() : Promise.reject(r);
+                })
+                .then(function (data) {
+                    if (data && data.message) {
+                        appendMessages([data.message]);
+                    }
+                })
+                .catch(function () {});
+        });
     }
 
     function pollMessages() {
@@ -288,8 +284,9 @@
     function openPanel() {
         panelOpen = true;
         panel.classList.add("open");
+        renderConversation();
+        renderWelcome();
         if (uuid) {
-            renderConversation();
             fetch(
                 url("/conversations/" + encodeURIComponent(uuid) + "/messages"),
                 { headers: { Accept: "application/json" } }
@@ -306,11 +303,8 @@
                         window.localStorage.removeItem(storageKey);
                     } catch (e) {}
                     uuid = null;
-                    renderIntro();
                 });
             startPolling();
-        } else {
-            renderIntro();
         }
     }
 
