@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\Schemas;
 
+use Filament\Forms\Components\CodeEditor;
+use Filament\Forms\Components\CodeEditor\Enums\Language;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
@@ -69,11 +71,9 @@ final class ChatWidgetForm
                     ->description(__('filament-chat-widget::chat.fields.custom_css_help'))
                     ->collapsed()
                     ->schema([
-                        Textarea::make('custom_css')
+                        CodeEditor::make('custom_css')
                             ->label(__('filament-chat-widget::chat.fields.custom_css'))
-                            ->rows(12)
-                            ->placeholder(".fcw-chat-btn { background: #111; }\n.fcw-chat-header { font-size: 16px; }")
-                            ->extraInputAttributes(['style' => 'font-family: ui-monospace, SFMono-Regular, monospace; font-size: 13px;'])
+                            ->language(Language::Css)
                             ->columnSpanFull(),
                     ]),
             ]);
