@@ -10,6 +10,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('chat_widgets')) {
+            return;
+        }
+
         $tenantKey = (string) config('filament-chat-widget.tenant_foreign_key', 'team_id');
 
         Schema::create('chat_widgets', function (Blueprint $table) use ($tenantKey): void {
