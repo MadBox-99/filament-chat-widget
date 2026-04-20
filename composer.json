@@ -1,0 +1,61 @@
+{
+    "name": "cegem360/filament-chat-widget",
+    "description": "Embeddable chat widget for Laravel with a Filament v5 admin panel. Drop a JS snippet into any HTML page (WordPress, static site, SPA) and manage conversations from Filament.",
+    "type": "library",
+    "keywords": [
+        "laravel",
+        "filament",
+        "filament-plugin",
+        "chat",
+        "chat-widget",
+        "embeddable",
+        "wordpress",
+        "livechat"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Zoltán Tamás Szabó",
+            "email": "zoli.szabok@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "laravel/framework": "^11.0 || ^12.0 || ^13.0",
+        "filament/filament": "^4.0 || ^5.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0 || ^10.0 || ^11.0",
+        "pestphp/pest": "^3.0 || ^4.0",
+        "laravel/pint": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Cegem360\\FilamentChatWidget\\": "src/",
+            "Cegem360\\FilamentChatWidget\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Cegem360\\FilamentChatWidget\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Cegem360\\FilamentChatWidget\\FilamentChatWidgetServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "test": "pest",
+        "lint": "pint"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
