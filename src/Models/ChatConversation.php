@@ -33,6 +33,21 @@ class ChatConversation extends Model
     }
 
     /**
+     * Generic tenant relationship resolved from config.
+     * Used by Filament for automatic tenant scoping.
+     *
+     * @return BelongsTo<Model, $this>
+     */
+    public function tenant(): BelongsTo
+    {
+        /** @var class-string<Model> $tenantModel */
+        $tenantModel = (string) config('filament-chat-widget.tenant_model', Model::class);
+        $foreignKey = (string) config('filament-chat-widget.tenant_foreign_key', 'team_id');
+
+        return $this->belongsTo($tenantModel, $foreignKey);
+    }
+
+    /**
      * @return BelongsTo<Model, $this>
      */
     public function assignedTo(): BelongsTo

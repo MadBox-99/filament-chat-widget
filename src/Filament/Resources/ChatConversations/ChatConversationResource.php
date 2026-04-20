@@ -23,6 +23,8 @@ class ChatConversationResource extends Resource
 {
     protected static ?string $model = ChatConversation::class;
 
+    protected static ?string $tenantOwnershipRelationshipName = 'tenant';
+
     protected static ?int $navigationSort = 1;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChatBubbleLeftRight;

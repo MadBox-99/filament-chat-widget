@@ -22,6 +22,8 @@ class ChatWidgetResource extends Resource
 {
     protected static ?string $model = ChatWidget::class;
 
+    protected static ?string $tenantOwnershipRelationshipName = 'tenant';
+
     protected static ?int $navigationSort = 2;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
