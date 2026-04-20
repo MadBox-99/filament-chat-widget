@@ -58,6 +58,25 @@ From the widget edit page in the Filament admin, copy the embed snippet:
 
 Paste it just before the closing `</body>` tag of any page.
 
+## Cross-origin (CORS)
+
+The chat routes ship with CORS enabled by default for **all origins** (`*`),
+since the widget is designed to be embedded on third-party sites. To restrict
+which domains can talk to your chat API, edit
+`config/filament-chat-widget.php`:
+
+```php
+'routes' => [
+    'cors' => [
+        'allowed_origins' => ['https://example.com', 'https://blog.example.com'],
+    ],
+],
+```
+
+The package routes deliberately **do not** use Laravel's `web` middleware group.
+They are stateless public JSON APIs, so session/CSRF middleware would break
+them. **You do not need to add CSRF exemptions** to `bootstrap/app.php`.
+
 ## Custom tenant resolver
 
 If the default Eloquent slug lookup isn't enough (e.g. domain-based resolution), implement `Cegem360\FilamentChatWidget\Contracts\ChatWidgetTenantResolver` and set:

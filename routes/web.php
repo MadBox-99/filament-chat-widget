@@ -3,10 +3,11 @@
 declare(strict_types=1);
 
 use Cegem360\FilamentChatWidget\Http\Controllers\ChatWidgetController;
+use Cegem360\FilamentChatWidget\Http\Middleware\HandleChatWidgetCors;
 use Illuminate\Support\Facades\Route;
 
 $prefix = (string) config('filament-chat-widget.routes.prefix', 'chat');
-$middleware = (array) config('filament-chat-widget.routes.middleware', ['web']);
+$middleware = (array) config('filament-chat-widget.routes.middleware', [HandleChatWidgetCors::class]);
 $throttle = (array) config('filament-chat-widget.routes.throttle', []);
 
 Route::middleware($middleware)
@@ -27,4 +28,8 @@ Route::middleware($middleware)
         Route::post('conversations/{uuid}/messages', [ChatWidgetController::class, 'sendMessage'])
             ->middleware('throttle:' . ($throttle['send'] ?? '20,1'))
             ->name('chat.conversation.send');
+
+        Route::options('widget/{slug}', fn () => response('', 204));
+        Route::options('conversations', fn () => response('', 204));
+        Route::options('conversations/{uuid}/messages', fn () => response('', 204));
     });

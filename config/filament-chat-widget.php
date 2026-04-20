@@ -77,12 +77,30 @@ return [
     'routes' => [
         'enabled' => true,
         'prefix' => 'chat',
-        'middleware' => ['web'],
+
+        /*
+        | Default middleware for chat widget routes. Intentionally DOES NOT
+        | include the `web` group: these endpoints are stateless public JSON
+        | APIs consumed cross-origin, so session/CSRF middleware would
+        | break them. Override only if you know what you're doing.
+        */
+        'middleware' => [\Cegem360\FilamentChatWidget\Http\Middleware\HandleChatWidgetCors::class],
+
         'throttle' => [
             'config' => '60,1',
             'start' => '5,1',
             'messages' => '60,1',
             'send' => '20,1',
+        ],
+
+        /*
+        | Cross-origin resource sharing. The widget is embedded on third-party
+        | sites, so the default allows any origin. Restrict by listing
+        | specific origins if you want to lock it down.
+        */
+        'cors' => [
+            'allowed_origins' => ['*'],
+            'allowed_headers' => ['Content-Type', 'Accept', 'X-Requested-With', 'Origin'],
         ],
     ],
 
