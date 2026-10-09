@@ -31,6 +31,7 @@ return [
         'timezone' => 'Timezone',
         'opens' => 'Opens',
         'closes' => 'Closes',
+        'closes_help' => 'If earlier than the opening time, the range runs past midnight (e.g. 22:00–02:00).',
         'legacy_business_hours' => 'Legacy business hours (unused)',
         'legacy_business_hours_help' => 'This free-text field was never used by the widget. Move the data into the opening hours above, then clear it.',
         'custom_css' => 'Custom CSS',

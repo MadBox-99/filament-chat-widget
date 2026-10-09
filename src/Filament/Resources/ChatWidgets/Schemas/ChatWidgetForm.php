@@ -87,7 +87,8 @@ final class ChatWidgetForm
                                     ->label(__('filament-chat-widget::chat.fields.closes'))
                                     ->seconds(false)
                                     ->format('H:i')
-                                    ->after('from')
+                                    ->different('from')
+                                    ->helperText(__('filament-chat-widget::chat.fields.closes_help'))
                                     ->required(),
                             ])
                             ->columns(3)

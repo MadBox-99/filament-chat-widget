@@ -123,6 +123,18 @@ describe('messages', function (): void {
         expect($this->conversation->fresh()->unread_count)->toBe(7);
     });
 
+    it('fires saved events for app observers when a visitor writes', function (): void {
+        $saved = 0;
+        ChatConversation::saved(function () use (&$saved): void {
+            $saved++;
+        });
+
+        $this->postJson("/chat/conversations/{$this->conversation->uuid}/messages", ['message' => 'Hi'])->assertCreated();
+
+        expect($saved)->toBe(1)
+            ->and($this->conversation->fresh()->unread_count)->toBe(1);
+    });
+
     it('reopens a closed conversation when the visitor writes again', function (): void {
         $this->conversation->update(['status' => ChatConversationStatus::Closed, 'closed_at' => now()]);
 
@@ -170,6 +182,25 @@ describe('single-tenant mode', function (): void {
         $this->getJson('/chat/widget/default')
             ->assertOk()
             ->assertJsonPath('title', 'Solo');
+    });
+
+    it('uses a resolver bound in code instead of single-tenant mode', function (): void {
+        app()->instance(ChatWidgetTenantResolver::class, new class implements ChatWidgetTenantResolver
+        {
+            public function resolveTenantKeyBySlug(string $slug): int|string|null
+            {
+                return $slug === 'custom' ? 1 : null;
+            }
+
+            public function resolveSlugByTenantKey(int|string $tenantKey): ?string
+            {
+                return 'custom';
+            }
+        });
+        ChatWidget::factory()->create(['team_id' => 1, 'title' => 'Custom']);
+
+        $this->getJson('/chat/widget/custom')->assertOk()->assertJsonPath('title', 'Custom');
+        $this->getJson('/chat/widget/default')->assertNotFound();
     });
 
     it('starts conversations without a tenant', function (): void {

@@ -55,3 +55,22 @@ it('accepts times stored with seconds', function (): void {
     expect($widget->isOnlineAt(Carbon::parse('2026-10-05 09:00', 'UTC')))->toBeTrue()
         ->and($widget->isOnlineAt(Carbon::parse('2026-10-05 17:00', 'UTC')))->toBeFalse();
 });
+
+it('handles ranges past midnight', function (string $utc, bool $online): void {
+    // 2026-10-09 is a Friday.
+    $widget = widgetWithHours([['day' => 'fri', 'from' => '22:00', 'to' => '02:00']], 'UTC');
+
+    expect($widget->isOnlineAt(Carbon::parse($utc, 'UTC')))->toBe($online);
+})->with([
+    'friday evening' => ['2026-10-09 23:30', true],
+    'saturday early' => ['2026-10-10 01:59', true],
+    'saturday after close' => ['2026-10-10 02:00', false],
+    'friday early (belongs to thursday)' => ['2026-10-09 01:00', false],
+]);
+
+it('falls back to the app timezone when the stored timezone is invalid', function (): void {
+    config()->set('app.timezone', 'UTC');
+    $widget = widgetWithHours([['day' => 'mon', 'from' => '09:00', 'to' => '17:00']], 'Not/AZone');
+
+    expect($widget->isOnlineAt(Carbon::parse('2026-10-05 10:00', 'UTC')))->toBeTrue();
+});

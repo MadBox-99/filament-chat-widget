@@ -177,11 +177,11 @@ describe('widget form', function (): void {
             ->opening_hours->toBe([['day' => 'mon', 'from' => '09:00', 'to' => '17:00']]);
     });
 
-    it('rejects a closing time before the opening time', function (): void {
+    it('rejects a range that opens and closes at the same time', function (): void {
         $widget = ChatWidget::factory()->create(['team_id' => $this->team->id]);
 
         Livewire::test(EditChatWidget::class, ['record' => $widget->getRouteKey()])
-            ->fillForm(['opening_hours' => [['day' => 'mon', 'from' => '17:00', 'to' => '09:00']]])
+            ->fillForm(['opening_hours' => [['day' => 'mon', 'from' => '09:00', 'to' => '09:00']]])
             ->call('save')
             ->assertHasFormErrors();
     });

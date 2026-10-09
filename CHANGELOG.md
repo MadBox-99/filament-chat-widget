@@ -21,7 +21,7 @@
   failing with a database error.
 
 ### Added
-- Opening hours (day + from/to) with timezone; `is_online` in the config
+- Opening hours (day + from/to, ranges may run past midnight) with timezone; `is_online` in the config
   endpoint and an offline notice in the widget.
 - Localized widget labels (`labels` in the config endpoint, `?locale=` /
   `data-locale`).
@@ -39,6 +39,12 @@
   publish tag (the script is served by the `/chat/embed.js` route).
 
 ### Upgrade
+- Embed snippets that still point at the old published file
+  (`/vendor/filament-chat-widget/chat-widget.js`) keep working against the new
+  API but never receive updates. Switch them to `/chat/embed.js` (copy the
+  snippet again from the widget edit page).
+- Visitor messages now update the conversation with a regular `update()` after
+  an atomic SQL increment, so `saving`/`saved` observers keep firing.
 - Run `php artisan migrate` (adds `opening_hours` and `timezone` to
   `chat_widgets`). The old free-text business hours field stays visible on the
   edit page while it contains data, so it can be moved over by hand.

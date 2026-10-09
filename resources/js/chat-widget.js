@@ -251,10 +251,21 @@
         }
     }
 
-    function addBubble(type, text) {
+    function addBubble(type, text, id) {
         var div = document.createElement("div");
         div.className = "fcw-chat-msg " + type;
         div.textContent = text;
+        if (id) {
+            div.setAttribute("data-id", String(id));
+            // Keep server order even when history arrives after a newer message.
+            var nodes = body.querySelectorAll(".fcw-chat-msg[data-id]");
+            for (var i = 0; i < nodes.length; i++) {
+                if (parseInt(nodes[i].getAttribute("data-id"), 10) > id) {
+                    body.insertBefore(div, nodes[i]);
+                    return;
+                }
+            }
+        }
         body.appendChild(div);
     }
 
@@ -277,7 +288,7 @@
                 lastId = m.id;
             }
             var type = m.sender_type === "visitor" || m.sender_type === "system" ? m.sender_type : "agent";
-            addBubble(type, m.message);
+            addBubble(type, m.message, m.id);
             if (trackUnread && type !== "visitor" && m.id > lastSeenId && !panelOpen) {
                 unread++;
             }
@@ -372,7 +383,7 @@
     }
 
     function poll() {
-        if (!uuid || polling) {
+        if (!config || !uuid || polling) {
             return Promise.resolve();
         }
         polling = true;
@@ -401,7 +412,7 @@
             window.clearTimeout(pollTimer);
             pollTimer = null;
         }
-        if (!uuid || document.hidden) {
+        if (!config || !uuid || document.hidden) {
             return;
         }
         pollTimer = window.setTimeout(function () {

@@ -121,6 +121,12 @@ final class ChatWidgetController extends Controller
             'message' => $validated['message'],
         ]);
 
+        // Atomic increment in SQL, then a regular update() so app observers on
+        // saving/saved keep firing; the in-memory counter is synced, not saved.
+        ChatConversation::withoutGlobalScopes()->whereKey($conversation->getKey())->increment('unread_count');
+        $conversation->unread_count++;
+        $conversation->syncOriginalAttribute('unread_count');
+
         $attributes = ['last_message_at' => now()];
 
         if ($conversation->status === ChatConversationStatus::Closed) {
@@ -128,7 +134,7 @@ final class ChatWidgetController extends Controller
             $attributes['closed_at'] = null;
         }
 
-        $conversation->increment('unread_count', 1, $attributes);
+        $conversation->update($attributes);
 
         return new JsonResponse([
             'message' => $this->messageToArray($message),

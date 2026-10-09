@@ -9,8 +9,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
 use Madbox99\FilamentChatWidget\Database\Factories\ChatWidgetFactory;
 use Madbox99\FilamentChatWidget\Enums\ChatWeekday;
+use Madbox99\FilamentChatWidget\Support\EloquentTenantResolver;
 use Override;
 
 /**
@@ -71,8 +73,13 @@ class ChatWidget extends Model
      */
     public static function isSingleTenant(): bool
     {
-        return config('filament-chat-widget.tenant_model') === null
-            && config('filament-chat-widget.tenant_resolver') === null;
+        if (config('filament-chat-widget.tenant_model') !== null
+            || config('filament-chat-widget.tenant_resolver') !== null) {
+            return false;
+        }
+
+        // An app may also bind its own resolver in a service provider.
+        return app(ChatWidgetTenantResolver::class) instanceof EloquentTenantResolver;
     }
 
     /**
@@ -94,8 +101,9 @@ class ChatWidget extends Model
             return true;
         }
 
-        $local = $moment->copy()->setTimezone($this->timezone ?: (string) config('app.timezone', 'UTC'));
+        $local = $moment->copy()->setTimezone($this->resolveTimezone());
         $today = ChatWeekday::fromDate($local)->value;
+        $yesterday = ChatWeekday::fromDate($local->copy()->subDay())->value;
         $time = $local->format('H:i');
 
         foreach ($ranges as $range) {
@@ -103,12 +111,34 @@ class ChatWidget extends Model
             $from = substr((string) $range['from'], 0, 5);
             $to = substr((string) $range['to'], 0, 5);
 
-            if ($range['day'] === $today && $time >= $from && $time < $to) {
+            if ($from < $to) {
+                if ($range['day'] === $today && $time >= $from && $time < $to) {
+                    return true;
+                }
+
+                continue;
+            }
+
+            // Ranges past midnight (e.g. fri 22:00–02:00) cover the evening of
+            // their own day and the early hours of the next one.
+            if (($range['day'] === $today && $time >= $from)
+                || ($range['day'] === $yesterday && $time < $to)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    private function resolveTimezone(): string
+    {
+        $timezone = $this->timezone;
+
+        if (is_string($timezone) && in_array($timezone, timezone_identifiers_list(), true)) {
+            return $timezone;
+        }
+
+        return (string) config('app.timezone', 'UTC');
     }
 
     /**

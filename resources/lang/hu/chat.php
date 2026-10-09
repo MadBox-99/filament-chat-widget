@@ -31,6 +31,7 @@ return [
         'timezone' => 'Időzóna',
         'opens' => 'Nyitás',
         'closes' => 'Zárás',
+        'closes_help' => 'Ha korábbi, mint a nyitás, a sáv éjfélen átnyúlik (pl. 22:00–02:00).',
         'legacy_business_hours' => 'Régi nyitvatartás (nem használt)',
         'legacy_business_hours_help' => 'Ezt a szabad szöveges mezőt a widget sosem használta. Vidd át az adatokat a fenti nyitvatartásba, majd ürítsd ki.',
         'custom_css' => 'Egyedi CSS',
