@@ -4,16 +4,40 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentChatWidget\Models;
 
-use Madbox99\FilamentChatWidget\Database\Factories\ChatWidgetFactory;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
+use Madbox99\FilamentChatWidget\Database\Factories\ChatWidgetFactory;
+use Madbox99\FilamentChatWidget\Enums\ChatWeekday;
 use Override;
 
+/**
+ * @property int $id
+ * @property string $title
+ * @property string|null $welcome_message
+ * @property string $color
+ * @property string $position
+ * @property bool $is_active
+ * @property string|null $offline_message
+ * @property array<string, string>|null $business_hours
+ * @property array<int, mixed>|null $opening_hours Entries of {day, from, to}; validated at read time.
+ * @property string|null $timezone
+ * @property string|null $auto_reply_message
+ * @property string|null $custom_css
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class ChatWidget extends Model
 {
     /** @use HasFactory<ChatWidgetFactory> */
     use HasFactory;
+
+    /**
+     * Public slug used by the embed snippet when no tenant model is configured.
+     */
+    public const SINGLE_TENANT_SLUG = 'default';
 
     protected $table = 'chat_widgets';
 
@@ -43,6 +67,51 @@ class ChatWidget extends Model
     }
 
     /**
+     * Single-tenant installations have neither a tenant model nor a custom resolver.
+     */
+    public static function isSingleTenant(): bool
+    {
+        return config('filament-chat-widget.tenant_model') === null
+            && config('filament-chat-widget.tenant_resolver') === null;
+    }
+
+    /**
+     * Whether an agent is expected to be available at the given moment.
+     *
+     * Without configured opening hours the widget is always online. Each
+     * opening hours entry is `{day: mon..sun, from: HH:MM, to: HH:MM}` and is
+     * evaluated in the widget's timezone (falling back to the app timezone).
+     */
+    public function isOnlineAt(CarbonInterface $moment): bool
+    {
+        /** @var list<array{day?: string, from?: string, to?: string}> $ranges */
+        $ranges = array_values(array_filter(
+            (array) $this->opening_hours,
+            fn (mixed $range): bool => is_array($range) && isset($range['day'], $range['from'], $range['to']),
+        ));
+
+        if ($ranges === []) {
+            return true;
+        }
+
+        $local = $moment->copy()->setTimezone($this->timezone ?: (string) config('app.timezone', 'UTC'));
+        $today = ChatWeekday::fromDate($local)->value;
+        $time = $local->format('H:i');
+
+        foreach ($ranges as $range) {
+            // Time pickers may store seconds ("09:00:00"); compare on HH:MM only.
+            $from = substr((string) $range['from'], 0, 5);
+            $to = substr((string) $range['to'], 0, 5);
+
+            if ($range['day'] === $today && $time >= $from && $time < $to) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @return array<string, string>
      */
     #[Override]
@@ -51,6 +120,7 @@ class ChatWidget extends Model
         return [
             'is_active' => 'boolean',
             'business_hours' => 'array',
+            'opening_hours' => 'array',
         ];
     }
 }

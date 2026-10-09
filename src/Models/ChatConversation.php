@@ -4,20 +4,41 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentChatWidget\Models;
 
-use Madbox99\FilamentChatWidget\Database\Factories\ChatConversationFactory;
-use Madbox99\FilamentChatWidget\Enums\ChatConversationStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Madbox99\FilamentChatWidget\Database\Factories\ChatConversationFactory;
+use Madbox99\FilamentChatWidget\Enums\ChatConversationStatus;
 use Override;
 
+/**
+ * @property int $id
+ * @property string|null $uuid
+ * @property string|null $visitor_name
+ * @property string|null $visitor_email
+ * @property string|null $visitor_ip
+ * @property ChatConversationStatus $status
+ * @property int|null $assigned_to
+ * @property int $unread_count
+ * @property Carbon|null $last_message_at
+ * @property Carbon|null $started_at
+ * @property Carbon|null $closed_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ */
 class ChatConversation extends Model
 {
     /** @use HasFactory<ChatConversationFactory> */
     use HasFactory;
+
+    use Prunable;
     use SoftDeletes;
 
     protected $table = 'chat_conversations';
@@ -53,7 +74,7 @@ class ChatConversation extends Model
     public function assignedTo(): BelongsTo
     {
         /** @var class-string<Model> $agentModel */
-        $agentModel = (string) config('filament-chat-widget.agent_model', \App\Models\User::class);
+        $agentModel = (string) config('filament-chat-widget.agent_model', 'App\Models\User');
 
         return $this->belongsTo($agentModel, 'assigned_to');
     }
@@ -64,6 +85,38 @@ class ChatConversation extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(ChatMessage::class);
+    }
+
+    /**
+     * Conversations without activity for `privacy.retention_days` are
+     * permanently deleted (messages cascade). Disabled when the setting is null.
+     *
+     * @return Builder<self>
+     */
+    public function prunable(): Builder
+    {
+        $days = config('filament-chat-widget.privacy.retention_days');
+
+        if (! is_numeric($days) || (int) $days < 1) {
+            return static::withoutGlobalScopes()->whereRaw('1 = 0');
+        }
+
+        $cutoff = now()->subDays((int) $days);
+
+        return static::withoutGlobalScopes()
+            ->withTrashed()
+            ->where(fn (Builder $query) => $query
+                ->where('last_message_at', '<', $cutoff)
+                ->orWhere(fn (Builder $query) => $query->whereNull('last_message_at')->where('created_at', '<', $cutoff)));
+    }
+
+    /**
+     * Delete messages explicitly so pruning does not depend on the database
+     * enforcing the foreign key cascade.
+     */
+    protected function pruning(): void
+    {
+        $this->messages()->delete();
     }
 
     #[Override]

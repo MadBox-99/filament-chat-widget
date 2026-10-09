@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentChatWidget\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
 use Madbox99\FilamentChatWidget\Enums\ChatConversationStatus;
 use Madbox99\FilamentChatWidget\Enums\ChatSenderType;
 use Madbox99\FilamentChatWidget\Models\ChatConversation;
 use Madbox99\FilamentChatWidget\Models\ChatMessage;
 use Madbox99\FilamentChatWidget\Models\ChatWidget;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final class ChatWidgetController extends Controller
@@ -24,7 +24,7 @@ final class ChatWidgetController extends Controller
     /**
      * Return the public widget configuration for a given tenant slug.
      */
-    public function config(string $slug): JsonResponse
+    public function config(Request $request, string $slug): JsonResponse
     {
         $widget = $this->findActiveWidgetForSlug($slug);
 
@@ -33,9 +33,11 @@ final class ChatWidgetController extends Controller
             'welcome_message' => $widget->welcome_message,
             'color' => $widget->color,
             'position' => $widget->position,
+            'is_online' => $widget->isOnlineAt(now()),
             'offline_message' => $widget->offline_message,
             'auto_reply_message' => $widget->auto_reply_message,
             'custom_css' => $widget->getAttribute('custom_css'),
+            'labels' => $this->labels($this->resolveLocale($request)),
         ]);
     }
 
@@ -119,10 +121,14 @@ final class ChatWidgetController extends Controller
             'message' => $validated['message'],
         ]);
 
-        $conversation->update([
-            'last_message_at' => now(),
-            'unread_count' => $conversation->unread_count + 1,
-        ]);
+        $attributes = ['last_message_at' => now()];
+
+        if ($conversation->status === ChatConversationStatus::Closed) {
+            $attributes['status'] = ChatConversationStatus::Open;
+            $attributes['closed_at'] = null;
+        }
+
+        $conversation->increment('unread_count', 1, $attributes);
 
         return new JsonResponse([
             'message' => $this->messageToArray($message),
@@ -134,24 +140,54 @@ final class ChatWidgetController extends Controller
      */
     private function findActiveWidgetForSlug(string $slug): ChatWidget
     {
-        $tenantKey = $this->tenantResolver->resolveTenantKeyBySlug($slug);
+        $tenantForeignKey = (string) config('filament-chat-widget.tenant_foreign_key', 'team_id');
+        $query = ChatWidget::withoutGlobalScopes()->where('is_active', true);
 
-        if ($tenantKey === null) {
-            throw new NotFoundHttpException();
+        if (ChatWidget::isSingleTenant()) {
+            $query->whereNull($tenantForeignKey)->orderBy('id');
+        } else {
+            $tenantKey = $this->tenantResolver->resolveTenantKeyBySlug($slug);
+
+            if ($tenantKey === null) {
+                throw new NotFoundHttpException;
+            }
+
+            $query->where($tenantForeignKey, $tenantKey);
         }
 
-        $tenantForeignKey = (string) config('filament-chat-widget.tenant_foreign_key', 'team_id');
-
-        $widget = ChatWidget::withoutGlobalScopes()
-            ->where($tenantForeignKey, $tenantKey)
-            ->where('is_active', true)
-            ->first();
+        $widget = $query->first();
 
         if (! $widget instanceof ChatWidget) {
-            throw new NotFoundHttpException();
+            throw new NotFoundHttpException;
         }
 
         return $widget;
+    }
+
+    /**
+     * Pick the label locale from the `locale` query parameter (e.g. `hu`, `hu-HU`),
+     * falling back to the app locale when it is missing or not translated.
+     */
+    private function resolveLocale(Request $request): string
+    {
+        $requested = strtolower(substr((string) $request->query('locale', ''), 0, 2));
+
+        if (preg_match('/^[a-z]{2}$/', $requested) === 1
+            && trans()->hasForLocale('filament-chat-widget::chat.widget_ui.send', $requested)) {
+            return $requested;
+        }
+
+        return app()->getLocale();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function labels(string $locale): array
+    {
+        $labels = trans('filament-chat-widget::chat.widget_ui', [], $locale);
+
+        return is_array($labels) ? $labels : [];
     }
 
     /**
@@ -164,7 +200,7 @@ final class ChatWidgetController extends Controller
             ->first();
 
         if (! $conversation instanceof ChatConversation) {
-            throw new NotFoundHttpException();
+            throw new NotFoundHttpException;
         }
 
         return $conversation;
@@ -193,9 +229,7 @@ final class ChatWidgetController extends Controller
     {
         return [
             'id' => $message->id,
-            'sender_type' => $message->sender_type instanceof ChatSenderType
-                ? $message->sender_type->value
-                : (string) $message->sender_type,
+            'sender_type' => $message->sender_type->value,
             'message' => $message->message,
             'created_at' => $message->created_at?->toIso8601String() ?? '',
         ];

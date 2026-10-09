@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentChatWidget\Database\Factories;
 
-use Madbox99\FilamentChatWidget\Models\ChatWidget;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Madbox99\FilamentChatWidget\Models\ChatWidget;
 
 /**
  * @extends Factory<ChatWidget>

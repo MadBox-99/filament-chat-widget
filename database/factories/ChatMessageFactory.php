@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentChatWidget\Database\Factories;
 
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Madbox99\FilamentChatWidget\Enums\ChatSenderType;
 use Madbox99\FilamentChatWidget\Models\ChatConversation;
 use Madbox99\FilamentChatWidget\Models\ChatMessage;
-use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * @extends Factory<ChatMessage>

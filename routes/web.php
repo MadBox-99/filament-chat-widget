@@ -15,23 +15,23 @@ Route::middleware($middleware)
     ->prefix($prefix)
     ->group(function () use ($throttle): void {
         Route::get('embed.js', EmbedScriptController::class)
-            ->middleware('throttle:' . ($throttle['embed'] ?? '120,1'))
+            ->middleware('throttle:'.($throttle['embed'] ?? '120,1'))
             ->name('chat.embed.script');
 
         Route::get('widget/{slug}', [ChatWidgetController::class, 'config'])
-            ->middleware('throttle:' . ($throttle['config'] ?? '60,1'))
+            ->middleware('throttle:'.($throttle['config'] ?? '60,1'))
             ->name('chat.widget.config');
 
         Route::post('conversations', [ChatWidgetController::class, 'start'])
-            ->middleware('throttle:' . ($throttle['start'] ?? '5,1'))
+            ->middleware('throttle:'.($throttle['start'] ?? '5,1'))
             ->name('chat.conversation.start');
 
         Route::get('conversations/{uuid}/messages', [ChatWidgetController::class, 'messages'])
-            ->middleware('throttle:' . ($throttle['messages'] ?? '60,1'))
+            ->middleware('throttle:'.($throttle['messages'] ?? '60,1'))
             ->name('chat.conversation.messages');
 
         Route::post('conversations/{uuid}/messages', [ChatWidgetController::class, 'sendMessage'])
-            ->middleware('throttle:' . ($throttle['send'] ?? '20,1'))
+            ->middleware('throttle:'.($throttle['send'] ?? '20,1'))
             ->name('chat.conversation.send');
 
         Route::options('widget/{slug}', fn () => response('', 204));

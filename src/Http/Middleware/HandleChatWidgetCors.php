@@ -36,10 +36,11 @@ final class HandleChatWidgetCors
         /** @var list<string> $allowedOrigins */
         $allowedOrigins = (array) config('filament-chat-widget.routes.cors.allowed_origins', ['*']);
 
-        $allowAll = in_array('*', $allowedOrigins, true);
-        $allowOrigin = $allowAll
-            ? '*'
-            : ($origin !== null && in_array($origin, $allowedOrigins, true) ? $origin : (string) ($allowedOrigins[0] ?? ''));
+        $allowOrigin = match (true) {
+            in_array('*', $allowedOrigins, true) => '*',
+            $origin !== null && in_array($origin, $allowedOrigins, true) => $origin,
+            default => null,
+        };
 
         /** @var list<string> $allowedHeaders */
         $allowedHeaders = (array) config(
@@ -47,16 +48,18 @@ final class HandleChatWidgetCors
             ['Content-Type', 'Accept', 'X-Requested-With', 'Origin']
         );
 
+        // The widget never sends cookies, so credentials are not allowed. A
+        // disallowed origin simply gets no Allow-Origin header and the browser
+        // blocks the response.
         $headers = [
-            'Access-Control-Allow-Origin' => $allowOrigin,
             'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
             'Access-Control-Allow-Headers' => implode(', ', $allowedHeaders),
             'Access-Control-Max-Age' => '86400',
             'Vary' => 'Origin',
         ];
 
-        if (! $allowAll && $allowOrigin !== '') {
-            $headers['Access-Control-Allow-Credentials'] = 'true';
+        if ($allowOrigin !== null) {
+            $headers['Access-Control-Allow-Origin'] = $allowOrigin;
         }
 
         return $headers;

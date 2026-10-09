@@ -2,12 +2,16 @@
  * Filament Chat Widget — embeddable browser widget.
  *
  * Usage:
- *   <script src="https://your-app.test/vendor/filament-chat-widget/chat-widget.js"
+ *   <script src="https://your-app.test/chat/embed.js"
  *           data-team="{tenant_slug}" async></script>
  *
- * Reads the `data-team` attribute, fetches widget config from the host,
- * renders a floating button + chat panel, persists conversation uuid in
- * localStorage, and polls for new messages while the panel is open.
+ * Optional attributes:
+ *   data-prefix  route prefix when `routes.prefix` is not "chat"
+ *   data-locale  label language (defaults to <html lang>, then the browser)
+ *
+ * Fetches the widget config, renders a floating button + chat panel, keeps
+ * the conversation uuid in localStorage and polls for new messages: quickly
+ * while the panel is open, slowly in the background to show an unread badge.
  */
 (function () {
     "use strict";
@@ -16,12 +20,15 @@
         return;
     }
 
-    var scripts = document.querySelectorAll("script[data-team]");
-    if (!scripts || scripts.length === 0) {
+    var script = document.currentScript;
+    if (!script || !script.getAttribute("data-team")) {
+        var scripts = document.querySelectorAll("script[data-team]");
+        script = scripts.length ? scripts[scripts.length - 1] : null;
+    }
+    if (!script) {
         return;
     }
 
-    var script = scripts[scripts.length - 1];
     var slug = script.getAttribute("data-team");
     if (!slug) {
         return;
@@ -34,32 +41,87 @@
         return;
     }
 
-    var routePrefix = script.getAttribute("data-prefix") || "chat";
-    var storageKey = "fcw-chat-" + slug;
     var mountedAttr = "data-fcw-chat-mounted";
     if (document.documentElement.getAttribute(mountedAttr) === "1") {
         return;
     }
     document.documentElement.setAttribute(mountedAttr, "1");
 
-    var config = null;
-    var uuid = null;
-    var lastId = 0;
-    var pollTimer = null;
-    var panelOpen = false;
+    var routePrefix = (script.getAttribute("data-prefix") || "chat").replace(/^\/+|\/+$/g, "");
+    var locale = script.getAttribute("data-locale") || document.documentElement.lang || navigator.language || "";
+    var storageKey = "fcw-chat-" + slug;
+    var seenKey = storageKey + "-seen";
+    var OPEN_POLL_MS = 4000;
+    var BACKGROUND_POLL_MS = 20000;
+    var FCW_FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif";
 
-    try {
-        uuid = window.localStorage.getItem(storageKey);
-    } catch (e) {
-        uuid = null;
+    var config = null;
+    var labels = {};
+    var uuid = storageGet(storageKey);
+    var lastId = 0;
+    var lastSeenId = parseInt(storageGet(seenKey) || "0", 10) || 0;
+    // Conversations started by an older widget version have no "seen" marker;
+    // treat their existing history as read instead of flashing a huge badge.
+    var trackUnread = !uuid || storageGet(seenKey) !== null;
+    var renderedIds = {};
+    var unread = 0;
+    var pollTimer = null;
+    var polling = false;
+    var sending = false;
+    var panelOpen = false;
+    var historyLoaded = false;
+
+    function storageGet(key) {
+        try {
+            return window.localStorage.getItem(key);
+        } catch (e) {
+            return null;
+        }
     }
 
-    var FCW_FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif";
+    function storageSet(key, value) {
+        try {
+            if (value === null) {
+                window.localStorage.removeItem(key);
+            } else {
+                window.localStorage.setItem(key, value);
+            }
+        } catch (e) {}
+    }
+
+    function label(key, fallback) {
+        return labels[key] || fallback;
+    }
+
+    function url(path) {
+        return baseUrl + "/" + routePrefix + path;
+    }
+
+    function request(path, options) {
+        options = options || {};
+        var headers = { Accept: "application/json" };
+        if (options.body) {
+            headers["Content-Type"] = "application/json";
+        }
+        return fetch(url(path), {
+            method: options.method || "GET",
+            headers: headers,
+            body: options.body ? JSON.stringify(options.body) : undefined,
+        }).then(function (r) {
+            if (!r.ok) {
+                var error = new Error("HTTP " + r.status);
+                error.status = r.status;
+                throw error;
+            }
+            return r.json();
+        });
+    }
+
     var style = document.createElement("style");
     style.textContent =
         "@keyframes fcw-pop{0%{transform:translateY(16px) scale(.96);opacity:0}100%{transform:translateY(0) scale(1);opacity:1}}" +
         "@keyframes fcw-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}" +
-        "@keyframes fcw-pulse{0%,100%{box-shadow:0 12px 32px -8px rgba(0,0,0,.25),0 0 0 0 var(--fcw-color,#6366f1)}50%{box-shadow:0 12px 32px -8px rgba(0,0,0,.25),0 0 0 10px rgba(99,102,241,0)}}" +
+        "@keyframes fcw-pulse{0%,100%{box-shadow:0 12px 32px -8px rgba(0,0,0,.25),0 0 0 0 var(--fcw-color,#6366f1)}50%{box-shadow:0 12px 32px -8px rgba(0,0,0,.25),0 0 0 10px transparent}}" +
         ".fcw-chat-btn,.fcw-chat-panel{all:initial;font-family:" + FCW_FONT + ";-webkit-font-smoothing:antialiased;color-scheme:light}" +
         ".fcw-chat-btn,.fcw-chat-btn *,.fcw-chat-panel *{box-sizing:border-box;font-family:inherit;text-transform:none;letter-spacing:normal;font-variant:normal;font-style:normal;text-decoration:none;text-indent:0;text-shadow:none;margin:0;padding:0;border:0;line-height:normal;color:inherit}" +
         ".fcw-chat-btn{position:fixed;width:60px;height:60px;border-radius:50%;cursor:pointer;box-shadow:0 12px 32px -8px rgba(0,0,0,.28),0 2px 6px rgba(0,0,0,.12);z-index:2147483646;display:flex;align-items:center;justify-content:center;color:#fff;background:var(--fcw-color,#6366f1);transition:transform .2s ease,box-shadow .2s ease;animation:fcw-pulse 3s ease-in-out infinite}" +
@@ -82,45 +144,34 @@
         ".fcw-chat-input{border-top:1px solid rgba(0,0,0,.06);padding:10px 10px 12px;display:flex;gap:8px;background:#fff;align-items:flex-end;flex-shrink:0}" +
         ".fcw-chat-input textarea{flex:1;resize:none;border:1px solid rgba(0,0,0,.1);border-radius:14px;padding:10px 14px;font-family:inherit;font-size:14px;line-height:1.4;max-height:100px;background:#f7f8fa;color:#1a1b1f;outline:none;transition:border-color .15s ease,box-shadow .15s ease,background .15s ease;-webkit-appearance:none;appearance:none}" +
         ".fcw-chat-input textarea::placeholder{color:#9ca3af;text-transform:none;letter-spacing:normal;font-weight:400}" +
-        ".fcw-chat-input textarea:focus{border-color:var(--fcw-color,#6366f1);background:#fff;box-shadow:0 0 0 3px rgba(99,102,241,.12)}" +
+        ".fcw-chat-input textarea:focus{border-color:var(--fcw-color,#6366f1);background:#fff;box-shadow:0 0 0 3px rgba(0,0,0,.06)}" +
         ".fcw-chat-send{border-radius:12px;padding:0 16px;height:40px;color:#fff;cursor:pointer;font-weight:600;font-size:14px;background:var(--fcw-color,#6366f1);transition:transform .1s ease,filter .15s ease;white-space:nowrap;-webkit-appearance:none;appearance:none}" +
         ".fcw-chat-send:hover{filter:brightness(1.08)}" +
         ".fcw-chat-send:active{transform:scale(.97)}" +
         ".fcw-chat-send:disabled{opacity:.5;cursor:not-allowed;filter:none}" +
+        ".fcw-chat-badge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#ef4444;color:#fff;font-size:11px;font-weight:700;line-height:20px;text-align:center;box-shadow:0 0 0 2px #fff;display:none}" +
+        ".fcw-chat-badge.visible{display:block}" +
+        ".fcw-chat-notice{align-self:stretch;background:#fff7ed;color:#9a3412;font-size:12.5px;line-height:1.4;padding:8px 12px;border-radius:10px;box-shadow:0 0 0 1px rgba(154,52,18,.12)}" +
+        ".fcw-chat-error{display:none;padding:6px 12px 0;background:#fff;color:#b91c1c;font-size:12px;line-height:1.4}" +
+        ".fcw-chat-error.visible{display:block}" +
+        "@media(prefers-reduced-motion:reduce){.fcw-chat-btn,.fcw-chat-panel.open,.fcw-chat-msg{animation:none}}" +
         "@media(max-width:480px){.fcw-chat-panel{width:calc(100vw - 16px);height:calc(100vh - 96px);border-radius:16px}.fcw-chat-btn{width:56px;height:56px}}";
     document.head.appendChild(style);
 
     var button = document.createElement("button");
     button.className = "fcw-chat-btn";
     button.type = "button";
+    button.setAttribute("aria-expanded", "false");
     button.innerHTML =
-        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
-    button.setAttribute("aria-label", "Chat");
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>' +
+        '<span class="fcw-chat-badge" aria-hidden="true"></span>';
+    var badge = button.querySelector(".fcw-chat-badge");
 
     var panel = document.createElement("div");
     panel.className = "fcw-chat-panel";
+    panel.setAttribute("role", "dialog");
 
-    function url(path) {
-        return baseUrl + "/" + routePrefix.replace(/^\/+|\/+$/g, "") + path;
-    }
-
-    function applyPosition() {
-        var position = (config && config.position) || "bottom-right";
-        var offset = "20px";
-        button.style.bottom = offset;
-        panel.style.bottom = "90px";
-        if (position === "bottom-left") {
-            button.style.left = offset;
-            button.style.right = "auto";
-            panel.style.left = offset;
-            panel.style.right = "auto";
-        } else {
-            button.style.right = offset;
-            button.style.left = "auto";
-            panel.style.right = offset;
-            panel.style.left = "auto";
-        }
-    }
+    var body, textarea, sendBtn, errorBox;
 
     function isValidColor(value) {
         if (!value || typeof value !== "string") {
@@ -132,219 +183,247 @@
         return test.color !== "";
     }
 
-    function applyColor() {
-        var color = config && config.color;
-        if (!isValidColor(color)) {
-            color = "#6366f1";
-        }
+    function applyAppearance() {
+        var color = isValidColor(config.color) ? config.color : "#6366f1";
         button.style.setProperty("--fcw-color", color);
         panel.style.setProperty("--fcw-color", color);
-    }
 
-    var customStyleNode = null;
-    function applyCustomCss() {
-        var css = (config && config.custom_css) || "";
-        if (!css) {
-            if (customStyleNode && customStyleNode.parentNode) {
-                customStyleNode.parentNode.removeChild(customStyleNode);
-                customStyleNode = null;
-            }
-            return;
+        var left = config.position === "bottom-left";
+        button.style.bottom = "20px";
+        panel.style.bottom = "90px";
+        button.style.left = panel.style.left = left ? "20px" : "auto";
+        button.style.right = panel.style.right = left ? "auto" : "20px";
+
+        if (config.custom_css) {
+            var custom = document.createElement("style");
+            custom.setAttribute("data-fcw-custom", "1");
+            custom.textContent = config.custom_css;
+            document.head.appendChild(custom);
         }
-        if (!customStyleNode) {
-            customStyleNode = document.createElement("style");
-            customStyleNode.setAttribute("data-fcw-custom", "1");
-            document.head.appendChild(customStyleNode);
-        }
-        customStyleNode.textContent = css;
     }
 
-    function escapeHtml(str) {
-        var div = document.createElement("div");
-        div.textContent = String(str == null ? "" : str);
-        return div.innerHTML;
-    }
-
-    function renderHeader() {
-        var title = (config && config.title) || "Chat";
-        return (
-            '<div class="fcw-chat-header"><span>' +
-            escapeHtml(title) +
-            '</span><button type="button" class="fcw-chat-close" aria-label="Close">&times;</button></div>'
-        );
-    }
-
-    function renderConversation() {
-        var labels = (config && config.labels) || {};
+    function buildPanel() {
+        panel.setAttribute("aria-label", config.title || "Chat");
+        button.setAttribute("aria-label", label("open_chat", "Open chat"));
         panel.innerHTML =
-            renderHeader() +
-            '<div class="fcw-chat-body"></div>' +
-            '<div class="fcw-chat-input">' +
-            '<textarea rows="2" placeholder="' + escapeHtml(labels.placeholder || "Type a message...") + '"></textarea>' +
-            '<button type="button" class="fcw-chat-send">' + escapeHtml(labels.send || "Send") + '</button>' +
-            "</div>";
-        applyColor();
-        panel.querySelector(".fcw-chat-close").addEventListener("click", closePanel);
-        var textarea = panel.querySelector("textarea");
-        var sendBtn = panel.querySelector(".fcw-chat-send");
-        sendBtn.addEventListener("click", function () {
-            sendMessage(textarea.value);
-            textarea.value = "";
-        });
+            '<div class="fcw-chat-header"><span></span>' +
+            '<button type="button" class="fcw-chat-close">&times;</button></div>' +
+            '<div class="fcw-chat-body" aria-live="polite"></div>' +
+            '<div class="fcw-chat-error" role="alert"></div>' +
+            '<div class="fcw-chat-input"><textarea rows="2"></textarea>' +
+            '<button type="button" class="fcw-chat-send"></button></div>';
+
+        panel.querySelector(".fcw-chat-header span").textContent = config.title || "Chat";
+        var closeBtn = panel.querySelector(".fcw-chat-close");
+        closeBtn.setAttribute("aria-label", label("close", "Close"));
+        closeBtn.addEventListener("click", closePanel);
+
+        body = panel.querySelector(".fcw-chat-body");
+        errorBox = panel.querySelector(".fcw-chat-error");
+        textarea = panel.querySelector("textarea");
+        textarea.placeholder = label("placeholder", "Type a message...");
+        textarea.setAttribute("aria-label", label("placeholder", "Type a message..."));
+        sendBtn = panel.querySelector(".fcw-chat-send");
+        sendBtn.textContent = label("send", "Send");
+
+        sendBtn.addEventListener("click", sendMessage);
         textarea.addEventListener("keydown", function (e) {
-            if (e.key === "Enter" && !e.shiftKey) {
+            if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
                 e.preventDefault();
-                sendMessage(textarea.value);
-                textarea.value = "";
+                sendMessage();
             }
         });
+        panel.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                closePanel();
+                button.focus();
+            }
+        });
+
+        if (config.welcome_message) {
+            addBubble("system", config.welcome_message);
+        }
+        if (config.is_online === false) {
+            var notice = document.createElement("div");
+            notice.className = "fcw-chat-notice";
+            notice.textContent = config.offline_message || label("offline", "We're offline right now, but leave a message.");
+            body.appendChild(notice);
+        }
+    }
+
+    function addBubble(type, text) {
+        var div = document.createElement("div");
+        div.className = "fcw-chat-msg " + type;
+        div.textContent = text;
+        body.appendChild(div);
+    }
+
+    function scrollToBottom() {
+        body.scrollTop = body.scrollHeight;
     }
 
     function appendMessages(messages) {
         if (!messages || !messages.length) {
             return;
         }
-        var body = panel.querySelector(".fcw-chat-body");
-        if (!body) {
-            return;
-        }
+        var added = false;
         for (var i = 0; i < messages.length; i++) {
             var m = messages[i];
+            if (!m || renderedIds[m.id]) {
+                continue;
+            }
+            renderedIds[m.id] = true;
             if (m.id > lastId) {
                 lastId = m.id;
             }
-            var div = document.createElement("div");
-            div.className = "fcw-chat-msg " + (m.sender_type || "agent");
-            div.textContent = m.message;
-            body.appendChild(div);
+            var type = m.sender_type === "visitor" || m.sender_type === "system" ? m.sender_type : "agent";
+            addBubble(type, m.message);
+            if (trackUnread && type !== "visitor" && m.id > lastSeenId && !panelOpen) {
+                unread++;
+            }
+            added = true;
         }
-        body.scrollTop = body.scrollHeight;
+        if (added) {
+            if (panelOpen) {
+                markSeen();
+            }
+            updateBadge();
+            scrollToBottom();
+        }
     }
 
-    function renderWelcome() {
-        var welcome = (config && config.welcome_message) || "";
-        if (!welcome) {
-            return;
+    function markSeen() {
+        unread = 0;
+        if (lastId > lastSeenId) {
+            lastSeenId = lastId;
+            storageSet(seenKey, String(lastSeenId));
         }
-        var body = panel.querySelector(".fcw-chat-body");
-        if (!body || body.querySelector(".fcw-chat-welcome")) {
-            return;
-        }
-        var div = document.createElement("div");
-        div.className = "fcw-chat-msg system fcw-chat-welcome";
-        div.textContent = welcome;
-        body.appendChild(div);
-        body.scrollTop = body.scrollHeight;
+        updateBadge();
     }
 
-    function ensureConversation(callback) {
+    function updateBadge() {
+        if (unread > 0) {
+            badge.textContent = unread > 9 ? "9+" : String(unread);
+            badge.classList.add("visible");
+            button.setAttribute("aria-label", label("unread", "New message") + " (" + unread + ")");
+        } else {
+            badge.classList.remove("visible");
+            button.setAttribute("aria-label", label("open_chat", "Open chat"));
+        }
+    }
+
+    function showError(message) {
+        errorBox.textContent = message || "";
+        errorBox.classList.toggle("visible", !!message);
+    }
+
+    function forgetConversation() {
+        uuid = null;
+        storageSet(storageKey, null);
+        storageSet(seenKey, null);
+    }
+
+    function ensureConversation() {
         if (uuid) {
-            callback();
-            return;
+            return Promise.resolve(uuid);
         }
-        fetch(url("/conversations"), {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Accept: "application/json" },
-            body: JSON.stringify({ slug: slug }),
-        })
-            .then(function (r) {
-                return r.ok ? r.json() : Promise.reject(r);
-            })
-            .then(function (data) {
-                uuid = data.uuid;
-                try {
-                    window.localStorage.setItem(storageKey, uuid);
-                } catch (e) {}
-                appendMessages(data.messages || []);
-                startPolling();
-                callback();
-            })
-            .catch(function () {});
-    }
-
-    function sendMessage(text) {
-        text = (text || "").trim();
-        if (!text) {
-            return;
-        }
-        ensureConversation(function () {
-            fetch(url("/conversations/" + encodeURIComponent(uuid) + "/messages"), {
-                method: "POST",
-                headers: { "Content-Type": "application/json", Accept: "application/json" },
-                body: JSON.stringify({ message: text }),
-            })
-                .then(function (r) {
-                    return r.ok ? r.json() : Promise.reject(r);
-                })
-                .then(function (data) {
-                    if (data && data.message) {
-                        appendMessages([data.message]);
-                    }
-                })
-                .catch(function () {});
+        return request("/conversations", { method: "POST", body: { slug: slug } }).then(function (data) {
+            uuid = data.uuid;
+            storageSet(storageKey, uuid);
+            appendMessages(data.messages || []);
+            return uuid;
         });
     }
 
-    function pollMessages() {
-        if (!uuid) {
+    function sendMessage() {
+        var text = (textarea.value || "").trim();
+        if (!text || sending) {
             return;
         }
-        fetch(
-            url("/conversations/" + encodeURIComponent(uuid) + "/messages?since=" + lastId),
-            { headers: { Accept: "application/json" } }
-        )
-            .then(function (r) {
-                return r.ok ? r.json() : Promise.reject(r);
+        sending = true;
+        sendBtn.disabled = true;
+        showError("");
+
+        ensureConversation()
+            .then(function (id) {
+                return request("/conversations/" + encodeURIComponent(id) + "/messages", {
+                    method: "POST",
+                    body: { message: text },
+                });
             })
             .then(function (data) {
-                appendMessages((data && data.messages) || []);
+                if (textarea.value.trim() === text) {
+                    textarea.value = "";
+                }
+                appendMessages(data && data.message ? [data.message] : []);
+                schedulePoll();
             })
-            .catch(function () {});
+            .catch(function (error) {
+                if (error && error.status === 404) {
+                    forgetConversation();
+                }
+                showError(label("send_failed", "Your message could not be sent. Please try again."));
+            })
+            .then(function () {
+                sending = false;
+                sendBtn.disabled = false;
+                textarea.focus();
+            });
     }
 
-    function startPolling() {
-        stopPolling();
-        pollTimer = window.setInterval(pollMessages, 5000);
+    function poll() {
+        if (!uuid || polling) {
+            return Promise.resolve();
+        }
+        polling = true;
+        var since = historyLoaded ? lastId : 0;
+        return request("/conversations/" + encodeURIComponent(uuid) + "/messages?since=" + since)
+            .then(function (data) {
+                historyLoaded = true;
+                appendMessages((data && data.messages) || []);
+                if (!trackUnread) {
+                    trackUnread = true;
+                    markSeen();
+                }
+            })
+            .catch(function (error) {
+                if (error && error.status === 404) {
+                    forgetConversation();
+                }
+            })
+            .then(function () {
+                polling = false;
+            });
     }
 
-    function stopPolling() {
+    function schedulePoll() {
         if (pollTimer) {
-            window.clearInterval(pollTimer);
+            window.clearTimeout(pollTimer);
             pollTimer = null;
         }
+        if (!uuid || document.hidden) {
+            return;
+        }
+        pollTimer = window.setTimeout(function () {
+            poll().then(schedulePoll);
+        }, panelOpen ? OPEN_POLL_MS : BACKGROUND_POLL_MS);
     }
 
     function openPanel() {
         panelOpen = true;
         panel.classList.add("open");
-        renderConversation();
-        renderWelcome();
-        if (uuid) {
-            fetch(
-                url("/conversations/" + encodeURIComponent(uuid) + "/messages"),
-                { headers: { Accept: "application/json" } }
-            )
-                .then(function (r) {
-                    return r.ok ? r.json() : Promise.reject(r);
-                })
-                .then(function (data) {
-                    lastId = 0;
-                    appendMessages((data && data.messages) || []);
-                })
-                .catch(function () {
-                    try {
-                        window.localStorage.removeItem(storageKey);
-                    } catch (e) {}
-                    uuid = null;
-                });
-            startPolling();
-        }
+        button.setAttribute("aria-expanded", "true");
+        markSeen();
+        scrollToBottom();
+        textarea.focus();
+        poll().then(schedulePoll);
     }
 
     function closePanel() {
         panelOpen = false;
         panel.classList.remove("open");
-        stopPolling();
+        button.setAttribute("aria-expanded", "false");
+        schedulePoll();
     }
 
     button.addEventListener("click", function () {
@@ -355,21 +434,26 @@
         }
     });
 
+    document.addEventListener("visibilitychange", function () {
+        if (document.hidden) {
+            schedulePoll();
+        } else {
+            poll().then(schedulePoll);
+        }
+    });
+
     function init() {
-        fetch(url("/widget/" + encodeURIComponent(slug)), {
-            headers: { Accept: "application/json" },
-        })
-            .then(function (r) {
-                return r.ok ? r.json() : Promise.reject(r);
-            })
+        request("/widget/" + encodeURIComponent(slug) + (locale ? "?locale=" + encodeURIComponent(locale) : ""))
             .then(function (data) {
-                config = data;
+                config = data || {};
+                labels = config.labels || {};
+                buildPanel();
+                applyAppearance();
                 document.body.appendChild(button);
                 document.body.appendChild(panel);
-                applyPosition();
-                applyColor();
-                applyCustomCss();
+                return poll();
             })
+            .then(schedulePoll)
             .catch(function () {});
     }
 

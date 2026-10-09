@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\Pages;
 
-use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\ChatWidgetResource;
 use Filament\Resources\Pages\CreateRecord;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\ChatWidgetResource;
 
 class CreateChatWidget extends CreateRecord
 {

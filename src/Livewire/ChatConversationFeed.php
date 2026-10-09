@@ -8,14 +8,21 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Madbox99\FilamentChatWidget\Enums\ChatConversationStatus;
 use Madbox99\FilamentChatWidget\Enums\ChatSenderType;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\ChatConversationResource;
 use Madbox99\FilamentChatWidget\Models\ChatConversation;
 use Madbox99\FilamentChatWidget\Models\ChatMessage;
 
+/**
+ * @property-read ChatConversation|null $conversation
+ * @property-read Collection<int, ChatMessage> $messages
+ */
 final class ChatConversationFeed extends Component
 {
+    #[Locked]
     public int $conversationId;
 
     public string $newMessage = '';
@@ -24,17 +31,30 @@ final class ChatConversationFeed extends Component
 
     public function mount(int $conversationId): void
     {
+        // Resolve through the resource query so Filament's tenant scoping and the
+        // resource policy apply; the id is locked afterwards, so later requests
+        // cannot swap in a conversation that was not authorized here.
+        $conversation = ChatConversationResource::getEloquentQuery()->whereKey($conversationId)->first();
+
+        abort_unless(
+            $conversation instanceof ChatConversation,
+            404,
+        );
+
+        abort_unless(ChatConversationResource::canView($conversation), 403);
+
         $this->conversationId = $conversationId;
 
-        $conversation = $this->conversation;
-
-        if ($conversation instanceof ChatConversation && $conversation->unread_count > 0) {
+        if ($conversation->unread_count > 0) {
             $conversation->update(['unread_count' => 0]);
         }
 
         $this->lastMessageId = (int) $this->messages->max('id');
     }
 
+    /**
+     * @return Collection<int, ChatMessage>
+     */
     #[Computed]
     public function messages(): Collection
     {
@@ -95,13 +115,21 @@ final class ChatConversationFeed extends Component
             'message' => $text,
         ]);
 
-        $conversation->update([
+        $attributes = [
             'last_message_at' => now(),
             'unread_count' => 0,
-            'status' => $conversation->status === ChatConversationStatus::Closed
-                ? ChatConversationStatus::Open
-                : $conversation->status,
-        ]);
+        ];
+
+        if ($conversation->status === ChatConversationStatus::Closed) {
+            $attributes['status'] = ChatConversationStatus::Open;
+            $attributes['closed_at'] = null;
+        }
+
+        if ($conversation->assigned_to === null) {
+            $attributes['assigned_to'] = Auth::id();
+        }
+
+        $conversation->update($attributes);
 
         $this->newMessage = '';
         unset($this->messages);

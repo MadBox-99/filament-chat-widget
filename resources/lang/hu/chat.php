@@ -26,6 +26,13 @@ return [
         'messaging' => 'Üzenetek',
         'business_hours' => 'Nyitvatartás',
         'conversation_details' => 'Beszélgetés részletei',
+        'opening_hours' => 'Nyitvatartás',
+        'opening_hours_help' => 'Ha üres, a widget mindig elérhetőként jelenik meg. Nyitvatartáson kívül a látogató az offline üzenetet látja, de üzenetet továbbra is hagyhat.',
+        'timezone' => 'Időzóna',
+        'opens' => 'Nyitás',
+        'closes' => 'Zárás',
+        'legacy_business_hours' => 'Régi nyitvatartás (nem használt)',
+        'legacy_business_hours_help' => 'Ezt a szabad szöveges mezőt a widget sosem használta. Vidd át az adatokat a fenti nyitvatartásba, majd ürítsd ki.',
         'custom_css' => 'Egyedi CSS',
     ],
     'fields' => [
@@ -60,6 +67,9 @@ return [
     'actions' => [
         'embed_code' => 'Beágyazó kód',
         'close' => 'Bezárás',
+        'close_conversation' => 'Lezárás',
+        'reopen_conversation' => 'Újranyitás',
+        'assign_to_me' => 'Hozzám rendelés',
         'reply' => 'Válasz',
     ],
     'embed' => [
@@ -73,5 +83,23 @@ return [
         'empty' => 'Még nincs üzenet. Indíts beszélgetést lent.',
         'placeholder' => 'Válasz gépelése (Enter = küldés)...',
         'send' => 'Küldés',
+    ],
+    'notifications' => [
+        'closed' => 'A beszélgetés lezárva.',
+        'reopened' => 'A beszélgetés újranyitva.',
+        'assigned' => 'Hozzád rendelve.',
+    ],
+    'validation' => [
+        'widget_exists' => 'Ehhez a fiókhoz már tartozik chat widget.',
+    ],
+    'weekdays' => ['mon' => 'Hétfő', 'tue' => 'Kedd', 'wed' => 'Szerda', 'thu' => 'Csütörtök', 'fri' => 'Péntek', 'sat' => 'Szombat', 'sun' => 'Vasárnap'],
+    'widget_ui' => [
+        'placeholder' => 'Írd be az üzeneted...',
+        'send' => 'Küldés',
+        'send_failed' => 'Az üzenet elküldése nem sikerült. Próbáld újra.',
+        'close' => 'Bezárás',
+        'open_chat' => 'Chat megnyitása',
+        'offline' => 'Most nem vagyunk elérhetők, de hagyj üzenetet, és hamarosan válaszolunk.',
+        'unread' => 'Új üzenet érkezett',
     ],
 ];

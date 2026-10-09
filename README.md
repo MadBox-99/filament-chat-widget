@@ -6,12 +6,15 @@ Drop a `<script>` tag into any HTML page (WordPress, static site, SPA) and manag
 
 ## Features
 
-- Filament v5 resources for widget configuration and conversation management
-- Vanilla JS embed (no framework dependencies on the host page)
-- Public JSON API for widget config, conversation start, polling, and message sending
+- Filament v4/v5 resources for widget configuration and conversation management
+- Chat-style agent feed with close / reopen / assign-to-me actions and an unread navigation badge
+- Vanilla JS embed (no framework dependencies on the host page), isolated from host CSS
+- Unread badge on the chat button, background polling that pauses in hidden tabs
+- Opening hours with timezone: outside them visitors see the offline message
+- Widget labels localized from the host page language (English and Hungarian included)
 - Pluggable multi-tenancy — works with `Team`, `Site`, `User`, or no tenant at all
-- Rate-limited routes out of the box
-- English and Hungarian translations included
+- GDPR-friendly: anonymous by default, IP not stored, optional automatic retention pruning
+- Rate-limited routes and built-in CORS
 
 ## Installation
 
@@ -61,6 +64,40 @@ From the widget edit page in the Filament admin, copy the embed snippet:
 
 Paste it just before the closing `</body>` tag of any page.
 
+Optional attributes on the `<script>` tag:
+
+| Attribute     | Purpose                                                                 |
+|---------------|-------------------------------------------------------------------------|
+| `data-locale` | Label language (`hu`, `en`, …). Defaults to `<html lang>`, then the browser. |
+| `data-prefix` | Route prefix, if you changed `routes.prefix` in the config.             |
+
+### Single-tenant installations
+
+Leave `tenant_model` (and `tenant_resolver`) as `null`. The panel then manages a
+single widget and the embed snippet uses `data-team="default"`.
+
+## Opening hours
+
+On the widget edit page you can add opening hours (day + from/to) and a
+timezone. Without opening hours the widget is always shown as online. Outside
+the configured hours visitors see the offline message but can still leave a
+message.
+
+## Data retention (GDPR)
+
+Conversations are anonymous by default and the visitor IP is not stored. To
+delete inactive conversations automatically, set a retention period:
+
+```php
+'privacy' => [
+    'store_visitor_ip' => false,
+    'retention_days' => 180,
+],
+```
+
+The package then schedules `model:prune` for chat conversations daily. Your app
+must run the Laravel scheduler (`php artisan schedule:run` every minute).
+
 ## Cross-origin (CORS)
 
 The chat routes ship with CORS enabled by default for **all origins** (`*`),
@@ -86,6 +123,14 @@ If the default Eloquent slug lookup isn't enough (e.g. domain-based resolution),
 
 ```php
 'tenant_resolver' => \App\Support\MyTenantResolver::class,
+```
+
+## Development
+
+```bash
+composer test      # Pest
+composer lint      # Pint
+composer analyse   # PHPStan (Larastan, level 6)
 ```
 
 ## License

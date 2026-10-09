@@ -26,6 +26,13 @@ return [
         'messaging' => 'Messaging',
         'business_hours' => 'Business Hours',
         'conversation_details' => 'Conversation Details',
+        'opening_hours' => 'Opening hours',
+        'opening_hours_help' => 'Leave empty to always show the widget as online. Outside opening hours visitors see the offline message but can still leave a message.',
+        'timezone' => 'Timezone',
+        'opens' => 'Opens',
+        'closes' => 'Closes',
+        'legacy_business_hours' => 'Legacy business hours (unused)',
+        'legacy_business_hours_help' => 'This free-text field was never used by the widget. Move the data into the opening hours above, then clear it.',
         'custom_css' => 'Custom CSS',
     ],
     'fields' => [
@@ -60,6 +67,9 @@ return [
     'actions' => [
         'embed_code' => 'Embed Code',
         'close' => 'Close',
+        'close_conversation' => 'Close conversation',
+        'reopen_conversation' => 'Reopen',
+        'assign_to_me' => 'Assign to me',
         'reply' => 'Reply',
     ],
     'embed' => [
@@ -73,5 +83,23 @@ return [
         'empty' => 'No messages yet. Start the conversation below.',
         'placeholder' => 'Type a reply and press Enter to send...',
         'send' => 'Send',
+    ],
+    'notifications' => [
+        'closed' => 'Conversation closed.',
+        'reopened' => 'Conversation reopened.',
+        'assigned' => 'Assigned to you.',
+    ],
+    'validation' => [
+        'widget_exists' => 'This tenant already has a chat widget.',
+    ],
+    'weekdays' => ['mon' => 'Monday', 'tue' => 'Tuesday', 'wed' => 'Wednesday', 'thu' => 'Thursday', 'fri' => 'Friday', 'sat' => 'Saturday', 'sun' => 'Sunday'],
+    'widget_ui' => [
+        'placeholder' => 'Type a message...',
+        'send' => 'Send',
+        'send_failed' => 'Your message could not be sent. Please try again.',
+        'close' => 'Close',
+        'open_chat' => 'Open chat',
+        'offline' => "We're offline right now, but leave a message and we'll get back to you soon.",
+        'unread' => 'New message',
     ],
 ];

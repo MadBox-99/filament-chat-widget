@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets;
 
 use BackedEnum;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Table;
+use Illuminate\Auth\Access\Response;
 use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\Pages\CreateChatWidget;
 use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\Pages\EditChatWidget;
 use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\Pages\ListChatWidgets;
 use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\Schemas\ChatWidgetForm;
 use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\Tables\ChatWidgetsTable;
 use Madbox99\FilamentChatWidget\Models\ChatWidget;
-use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Table;
 use Override;
-use UnitEnum;
 
 class ChatWidgetResource extends Resource
 {
@@ -55,6 +55,22 @@ class ChatWidgetResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('filament-chat-widget::chat.widget.plural');
+    }
+
+    /**
+     * The public API serves exactly one widget per tenant (and the tenant
+     * foreign key is unique), so creation is offered only while none exists.
+     */
+    #[Override]
+    public static function getCreateAuthorizationResponse(): Response
+    {
+        $response = parent::getCreateAuthorizationResponse();
+
+        if ($response->denied() || static::getEloquentQuery()->doesntExist()) {
+            return $response;
+        }
+
+        return Response::deny(__('filament-chat-widget::chat.validation.widget_exists'));
     }
 
     #[Override]

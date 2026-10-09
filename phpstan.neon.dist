@@ -1,0 +1,15 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 6
+    paths:
+        - src
+        - config
+        - database
+    tmpDir: build/phpstan
+    ignoreErrors:
+        # Larastan cannot resolve package-namespaced views ("filament-chat-widget::...").
+        -
+            identifier: argument.type
+            message: '#view-string#'

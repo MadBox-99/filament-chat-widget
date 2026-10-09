@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use Madbox99\FilamentChatWidget\Http\Middleware\HandleChatWidgetCors;
 
 return [
 
@@ -63,7 +64,7 @@ return [
     | Defaults to the app's User model.
     |
     */
-    'agent_model' => \App\Models\User::class,
+    'agent_model' => 'App\Models\User',
 
     /*
     |--------------------------------------------------------------------------
@@ -84,12 +85,12 @@ return [
         | APIs consumed cross-origin, so session/CSRF middleware would
         | break them. Override only if you know what you're doing.
         */
-        'middleware' => [\Madbox99\FilamentChatWidget\Http\Middleware\HandleChatWidgetCors::class],
+        'middleware' => [HandleChatWidgetCors::class],
 
         'throttle' => [
             'config' => '60,1',
             'start' => '5,1',
-            'messages' => '60,1',
+            'messages' => '120,1',
             'send' => '20,1',
         ],
 
@@ -106,27 +107,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | JavaScript Widget
-    |--------------------------------------------------------------------------
-    |
-    | URI (relative to APP_URL) where the embeddable widget script is served.
-    | Published to the app's `public/` directory via
-    | `php artisan vendor:publish --tag=filament-chat-widget-assets`.
-    |
-    */
-    'widget_script_path' => '/vendor/filament-chat-widget/chat-widget.js',
-
-    /*
-    |--------------------------------------------------------------------------
     | Privacy / GDPR
     |--------------------------------------------------------------------------
     |
     | The embedded widget is anonymous by default: it does not ask for a name
     | or email, and the visitor IP is NOT stored unless explicitly enabled.
     |
+    | `retention_days`: conversations with no activity for this many days are
+    | permanently deleted together with their messages. The package schedules
+    | `model:prune` daily for you when this is set (your app must run the
+    | Laravel scheduler). `null` keeps conversations forever.
+    |
     */
     'privacy' => [
         'store_visitor_ip' => false,
+        'retention_days' => null,
     ],
 
     /*

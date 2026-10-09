@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\Schemas;
 
-use Madbox99\FilamentChatWidget\Enums\ChatConversationStatus;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Madbox99\FilamentChatWidget\Enums\ChatConversationStatus;
 
 final class ChatConversationForm
 {

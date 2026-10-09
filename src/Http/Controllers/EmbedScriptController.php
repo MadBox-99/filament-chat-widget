@@ -13,16 +13,16 @@ final class EmbedScriptController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $path = dirname(__DIR__, 3) . '/resources/js/chat-widget.js';
+        $path = dirname(__DIR__, 3).'/resources/js/chat-widget.js';
 
         if (! is_file($path)) {
-            throw new NotFoundHttpException();
+            throw new NotFoundHttpException;
         }
 
         $hash = md5_file($path);
-        $etag = '"' . $hash . '"';
+        $etag = '"'.$hash.'"';
         $mtime = (int) filemtime($path);
-        $lastModified = gmdate('D, d M Y H:i:s', $mtime) . ' GMT';
+        $lastModified = gmdate('D, d M Y H:i:s', $mtime).' GMT';
 
         $headers = [
             'Content-Type' => 'application/javascript; charset=utf-8',

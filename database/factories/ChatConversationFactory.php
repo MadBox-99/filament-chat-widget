@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentChatWidget\Database\Factories;
 
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Madbox99\FilamentChatWidget\Enums\ChatConversationStatus;
 use Madbox99\FilamentChatWidget\Models\ChatConversation;
-use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * @extends Factory<ChatConversation>

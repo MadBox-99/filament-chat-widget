@@ -8,12 +8,16 @@ use Filament\Forms\Components\CodeEditor;
 use Filament\Forms\Components\CodeEditor\Enums\Language;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Madbox99\FilamentChatWidget\Enums\ChatWeekday;
+use Madbox99\FilamentChatWidget\Models\ChatWidget;
 
 final class ChatWidgetForm
 {
@@ -59,11 +63,43 @@ final class ChatWidgetForm
                     ->columns(2),
 
                 Section::make(__('filament-chat-widget::chat.sections.business_hours'))
+                    ->description(__('filament-chat-widget::chat.fields.opening_hours_help'))
                     ->schema([
+                        Select::make('timezone')
+                            ->label(__('filament-chat-widget::chat.fields.timezone'))
+                            ->options(fn (): array => array_combine(timezone_identifiers_list(), timezone_identifiers_list()))
+                            ->placeholder((string) config('app.timezone'))
+                            ->searchable(),
+                        Repeater::make('opening_hours')
+                            ->label(__('filament-chat-widget::chat.fields.opening_hours'))
+                            ->schema([
+                                Select::make('day')
+                                    ->label(__('filament-chat-widget::chat.fields.day'))
+                                    ->options(ChatWeekday::class)
+                                    ->enum(ChatWeekday::class)
+                                    ->required(),
+                                TimePicker::make('from')
+                                    ->label(__('filament-chat-widget::chat.fields.opens'))
+                                    ->seconds(false)
+                                    ->format('H:i')
+                                    ->required(),
+                                TimePicker::make('to')
+                                    ->label(__('filament-chat-widget::chat.fields.closes'))
+                                    ->seconds(false)
+                                    ->format('H:i')
+                                    ->after('from')
+                                    ->required(),
+                            ])
+                            ->columns(3)
+                            ->defaultItems(0)
+                            ->reorderable(false)
+                            ->columnSpanFull(),
                         KeyValue::make('business_hours')
-                            ->label(__('filament-chat-widget::chat.fields.business_hours'))
+                            ->label(__('filament-chat-widget::chat.fields.legacy_business_hours'))
+                            ->helperText(__('filament-chat-widget::chat.fields.legacy_business_hours_help'))
                             ->keyLabel(__('filament-chat-widget::chat.fields.day'))
                             ->valueLabel(__('filament-chat-widget::chat.fields.hours'))
+                            ->visible(fn (?ChatWidget $record): bool => filled($record?->business_hours))
                             ->columnSpanFull(),
                     ]),
 

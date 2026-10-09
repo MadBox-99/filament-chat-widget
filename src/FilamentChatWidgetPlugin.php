@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentChatWidget;
 
-use Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\ChatConversationResource;
-use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\ChatWidgetResource;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\ChatConversationResource;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\ChatWidgetResource;
 
 final class FilamentChatWidgetPlugin implements Plugin
 {
     public static function make(): self
     {
-        return new self();
+        return new self;
     }
 
     public function getId(): string

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentChatWidget\Support;
 
-use Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
 use Illuminate\Database\Eloquent\Model;
+use Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
 
 final class EloquentTenantResolver implements ChatWidgetTenantResolver
 {

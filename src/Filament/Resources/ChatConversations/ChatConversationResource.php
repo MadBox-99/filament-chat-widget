@@ -5,19 +5,17 @@ declare(strict_types=1);
 namespace Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations;
 
 use BackedEnum;
-use Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\Pages\EditChatConversation;
-use Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\Pages\ListChatConversations;
-use Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\Pages\ViewChatConversation;
-use Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\RelationManagers\ChatMessagesRelationManager;
-use Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\Schemas\ChatConversationForm;
-use Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\Tables\ChatConversationsTable;
-use Madbox99\FilamentChatWidget\Models\ChatConversation;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\Pages\EditChatConversation;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\Pages\ListChatConversations;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\Pages\ViewChatConversation;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\Schemas\ChatConversationForm;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\Tables\ChatConversationsTable;
+use Madbox99\FilamentChatWidget\Models\ChatConversation;
 use Override;
-use UnitEnum;
 
 class ChatConversationResource extends Resource
 {
@@ -77,11 +75,17 @@ class ChatConversationResource extends Resource
     }
 
     #[Override]
-    public static function getRelations(): array
+    public static function getNavigationBadge(): ?string
     {
-        return [
-            ChatMessagesRelationManager::class,
-        ];
+        $count = static::getEloquentQuery()->where('unread_count', '>', 0)->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    #[Override]
+    public static function getNavigationBadgeColor(): string
+    {
+        return 'danger';
     }
 
     #[Override]

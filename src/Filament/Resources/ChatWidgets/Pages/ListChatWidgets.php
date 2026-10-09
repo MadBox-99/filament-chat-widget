@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\Pages;
 
-use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\ChatWidgetResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\ChatWidgetResource;
 use Override;
 
 class ListChatWidgets extends ListRecords

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\Pages;
 
-use Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
-use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\ChatWidgetResource;
-use Madbox99\FilamentChatWidget\Models\ChatWidget;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Icons\Heroicon;
+use Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatWidgets\ChatWidgetResource;
+use Madbox99\FilamentChatWidget\Models\ChatWidget;
 use Override;
 
 class EditChatWidget extends EditRecord
@@ -52,18 +52,22 @@ class EditChatWidget extends EditRecord
     {
         $prefix = (string) config('filament-chat-widget.routes.prefix', 'chat');
 
-        return url('/' . trim($prefix, '/') . '/widget/' . $this->resolveSlug($record));
+        return url('/'.trim($prefix, '/').'/widget/'.$this->resolveSlug($record));
     }
 
     private function buildScriptSnippet(ChatWidget $record): string
     {
         $src = route('chat.embed.script');
 
-        return '<script src="' . $src . '" data-team="' . $this->resolveSlug($record) . '" async></script>';
+        return '<script src="'.e($src).'" data-team="'.e($this->resolveSlug($record)).'" async></script>';
     }
 
     private function resolveSlug(ChatWidget $record): string
     {
+        if (ChatWidget::isSingleTenant()) {
+            return ChatWidget::SINGLE_TENANT_SLUG;
+        }
+
         $tenantForeignKey = (string) config('filament-chat-widget.tenant_foreign_key', 'team_id');
         $tenantKey = $record->getAttribute($tenantForeignKey);
 
