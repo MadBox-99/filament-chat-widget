@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.4.0 - 2026-10-09
 
 ### Security
 - The agent chat feed locks its conversation id and authorizes it through the
