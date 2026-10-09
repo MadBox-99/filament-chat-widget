@@ -9,9 +9,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use LogicException;
 use Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
 use Madbox99\FilamentChatWidget\Database\Factories\ChatWidgetFactory;
 use Madbox99\FilamentChatWidget\Enums\ChatWeekday;
+use Madbox99\FilamentChatWidget\Support\ChatTenancy;
 use Madbox99\FilamentChatWidget\Support\EloquentTenantResolver;
 use Override;
 
@@ -61,11 +63,10 @@ class ChatWidget extends Model
      */
     public function tenant(): BelongsTo
     {
-        /** @var class-string<Model> $tenantModel */
-        $tenantModel = (string) config('filament-chat-widget.tenant_model', Model::class);
-        $foreignKey = (string) config('filament-chat-widget.tenant_foreign_key', 'team_id');
+        $tenantModel = ChatTenancy::model()
+            ?? throw new LogicException('No chat widget tenant model: set `filament-chat-widget.tenant_model` or use a Filament panel with tenancy.');
 
-        return $this->belongsTo($tenantModel, $foreignKey);
+        return $this->belongsTo($tenantModel, ChatTenancy::foreignKey());
     }
 
     /**
@@ -73,7 +74,7 @@ class ChatWidget extends Model
      */
     public static function isSingleTenant(): bool
     {
-        if (config('filament-chat-widget.tenant_model') !== null
+        if (ChatTenancy::model() !== null
             || config('filament-chat-widget.tenant_resolver') !== null) {
             return false;
         }

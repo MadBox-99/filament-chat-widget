@@ -13,8 +13,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use LogicException;
 use Madbox99\FilamentChatWidget\Database\Factories\ChatConversationFactory;
 use Madbox99\FilamentChatWidget\Enums\ChatConversationStatus;
+use Madbox99\FilamentChatWidget\Support\ChatTenancy;
 use Override;
 
 /**
@@ -61,11 +63,10 @@ class ChatConversation extends Model
      */
     public function tenant(): BelongsTo
     {
-        /** @var class-string<Model> $tenantModel */
-        $tenantModel = (string) config('filament-chat-widget.tenant_model', Model::class);
-        $foreignKey = (string) config('filament-chat-widget.tenant_foreign_key', 'team_id');
+        $tenantModel = ChatTenancy::model()
+            ?? throw new LogicException('No chat widget tenant model: set `filament-chat-widget.tenant_model` or use a Filament panel with tenancy.');
 
-        return $this->belongsTo($tenantModel, $foreignKey);
+        return $this->belongsTo($tenantModel, ChatTenancy::foreignKey());
     }
 
     /**

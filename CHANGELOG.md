@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.4.1 - 2026-10-09
+
+### Fixed
+- Apps that never published the config (`tenant_model = null`) but use a
+  Filament panel with tenancy crashed on every admin page in v0.4.0: the new
+  unread navigation badge ran a tenant-scoped query and the `tenant()`
+  relation was built with an empty class name. The tenant model now falls back
+  to the panel's tenant model, which also makes the public API resolve
+  widgets by the panel tenant's slug in those apps.
+
 ## v0.4.0 - 2026-10-09
 
 ### Security

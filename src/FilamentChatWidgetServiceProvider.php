@@ -10,6 +10,7 @@ use Livewire\Livewire;
 use Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
 use Madbox99\FilamentChatWidget\Livewire\ChatConversationFeed;
 use Madbox99\FilamentChatWidget\Models\ChatConversation;
+use Madbox99\FilamentChatWidget\Support\ChatTenancy;
 use Madbox99\FilamentChatWidget\Support\EloquentTenantResolver;
 
 final class FilamentChatWidgetServiceProvider extends ServiceProvider
@@ -29,11 +30,9 @@ final class FilamentChatWidgetServiceProvider extends ServiceProvider
                 return $app->make($override);
             }
 
-            /** @var class-string|null $tenantModel */
-            $tenantModel = config('filament-chat-widget.tenant_model');
             $slugColumn = (string) config('filament-chat-widget.tenant_slug_column', 'slug');
 
-            return new EloquentTenantResolver($tenantModel, $slugColumn);
+            return new EloquentTenantResolver(ChatTenancy::model(), $slugColumn);
         });
     }
 

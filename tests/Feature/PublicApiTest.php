@@ -2,14 +2,17 @@
 
 declare(strict_types=1);
 
+use Filament\Facades\Filament;
 use Illuminate\Support\Carbon;
 use Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
 use Madbox99\FilamentChatWidget\Enums\ChatConversationStatus;
 use Madbox99\FilamentChatWidget\Enums\ChatSenderType;
+use Madbox99\FilamentChatWidget\Filament\Resources\ChatConversations\ChatConversationResource;
 use Madbox99\FilamentChatWidget\Models\ChatConversation;
 use Madbox99\FilamentChatWidget\Models\ChatMessage;
 use Madbox99\FilamentChatWidget\Models\ChatWidget;
 use Madbox99\FilamentChatWidget\Tests\Fixtures\Team;
+use Madbox99\FilamentChatWidget\Tests\Fixtures\User;
 
 beforeEach(function (): void {
     $this->team = Team::query()->create(['name' => 'Acme', 'slug' => 'acme']);
@@ -169,43 +172,28 @@ describe('messages', function (): void {
     });
 });
 
-describe('single-tenant mode', function (): void {
+describe('tenant model inferred from the panel', function (): void {
     beforeEach(function (): void {
+        // Apps that never published the config: tenant_model is null, but the
+        // Filament panel has Team tenancy.
         config()->set('filament-chat-widget.tenant_model', null);
         app()->forgetInstance(ChatWidgetTenantResolver::class);
-
-        ChatWidget::query()->delete();
-        ChatWidget::factory()->create(['team_id' => null, 'title' => 'Solo']);
     });
 
-    it('serves the widget under the default slug', function (): void {
-        $this->getJson('/chat/widget/default')
-            ->assertOk()
-            ->assertJsonPath('title', 'Solo');
+    it('resolves widgets by the panel tenant slug', function (): void {
+        $this->getJson('/chat/widget/acme')->assertOk()->assertJsonPath('title', 'Hello');
     });
 
-    it('uses a resolver bound in code instead of single-tenant mode', function (): void {
-        app()->instance(ChatWidgetTenantResolver::class, new class implements ChatWidgetTenantResolver
-        {
-            public function resolveTenantKeyBySlug(string $slug): int|string|null
-            {
-                return $slug === 'custom' ? 1 : null;
-            }
+    it('scopes the navigation badge without crashing', function (): void {
+        $user = User::query()->create(['name' => 'Agent', 'email' => 'agent@example.com']);
+        $user->teams()->attach($this->team);
+        $this->actingAs($user);
+        Filament::setCurrentPanel('admin');
+        Filament::setTenant($this->team);
+        Filament::bootCurrentPanel();
 
-            public function resolveSlugByTenantKey(int|string $tenantKey): ?string
-            {
-                return 'custom';
-            }
-        });
-        ChatWidget::factory()->create(['team_id' => 1, 'title' => 'Custom']);
+        ChatConversation::factory()->create(['team_id' => $this->team->id, 'unread_count' => 2]);
 
-        $this->getJson('/chat/widget/custom')->assertOk()->assertJsonPath('title', 'Custom');
-        $this->getJson('/chat/widget/default')->assertNotFound();
-    });
-
-    it('starts conversations without a tenant', function (): void {
-        $uuid = $this->postJson('/chat/conversations', ['slug' => 'default'])->assertCreated()->json('uuid');
-
-        expect(ChatConversation::query()->where('uuid', $uuid)->value('team_id'))->toBeNull();
+        expect(ChatConversationResource::getNavigationBadge())->toBe('1');
     });
 });
