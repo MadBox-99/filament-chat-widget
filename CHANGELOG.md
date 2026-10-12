@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.5.1 - 2026-10-12
 
 ### Fixed
 - The widget no longer disappears after Livewire SPA navigation
