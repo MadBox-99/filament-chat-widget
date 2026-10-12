@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.5.0 - 2026-10-12
 
 ### Added
 - Links in chat messages are clickable in the widget and in the agent feed:
