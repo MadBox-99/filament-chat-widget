@@ -619,6 +619,26 @@
         }
     });
 
+    // Livewire SPA navigation (wire:navigate, Filament ->spa()) swaps <body>: put the widget back.
+    document.addEventListener("livewire:navigated", function () {
+        if (!config) {
+            return;
+        }
+        if (!style.isConnected) {
+            document.head.appendChild(style);
+        }
+        var custom = document.querySelector("style[data-fcw-custom]");
+        if (config.custom_css && !custom) {
+            applyAppearance();
+        }
+        if (!button.isConnected) {
+            document.body.appendChild(button);
+        }
+        if (!panel.isConnected) {
+            document.body.appendChild(panel);
+        }
+    });
+
     function init() {
         request("/widget/" + encodeURIComponent(slug) + (locale ? "?locale=" + encodeURIComponent(locale) : ""))
             .then(function (data) {

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- The widget no longer disappears after Livewire SPA navigation
+  (`->spa()`, `wire:navigate`), which replaces the page body.
+
 ## v0.5.0 - 2026-10-12
 
 ### Added
