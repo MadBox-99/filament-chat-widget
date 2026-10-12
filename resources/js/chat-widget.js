@@ -154,6 +154,16 @@
         ".fcw-chat-notice{align-self:stretch;background:#fff7ed;color:#9a3412;font-size:12.5px;line-height:1.4;padding:8px 12px;border-radius:10px;box-shadow:0 0 0 1px rgba(154,52,18,.12)}" +
         ".fcw-chat-error{display:none;padding:6px 12px 0;background:#fff;color:#b91c1c;font-size:12px;line-height:1.4}" +
         ".fcw-chat-error.visible{display:block}" +
+        ".fcw-chat-panel .fcw-chat-link{color:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer;word-break:break-word}" +
+        ".fcw-chat-panel .fcw-chat-video{display:block;margin-top:8px;width:250px;max-width:100%;white-space:normal}" +
+        ".fcw-chat-panel .fcw-chat-video-play{position:relative;display:block;width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#111827;cursor:pointer}" +
+        ".fcw-chat-panel .fcw-chat-video-play img{display:block;width:100%;height:100%;object-fit:cover}" +
+        ".fcw-chat-panel .fcw-chat-video-icon{position:absolute;left:50%;top:50%;width:54px;height:38px;margin:-19px 0 0 -27px;border-radius:10px;background:rgba(0,0,0,.72);transition:background .15s ease}" +
+        ".fcw-chat-panel .fcw-chat-video-icon:after{content:'';position:absolute;left:22px;top:11px;border-style:solid;border-width:8px 0 8px 13px;border-color:transparent transparent transparent #fff}" +
+        ".fcw-chat-panel .fcw-chat-video-play:hover .fcw-chat-video-icon,.fcw-chat-panel .fcw-chat-video-play:focus-visible .fcw-chat-video-icon{background:var(--fcw-color,#6366f1)}" +
+        ".fcw-chat-panel .fcw-chat-video iframe{display:block;width:100%;aspect-ratio:16/9;border:0;border-radius:10px;background:#000}" +
+        ".fcw-chat-panel .fcw-chat-video-open{display:inline-block;margin-top:4px;font-size:12px;opacity:.85;text-decoration:underline;color:inherit;cursor:pointer}" +
+        ".fcw-chat-panel .fcw-chat-video.blocked .fcw-chat-video-play,.fcw-chat-panel .fcw-chat-video.blocked iframe{display:none}" +
         "@media(prefers-reduced-motion:reduce){.fcw-chat-btn,.fcw-chat-panel.open,.fcw-chat-msg{animation:none}}" +
         "@media(max-width:480px){.fcw-chat-panel{width:calc(100vw - 16px);height:calc(100vh - 96px);border-radius:16px}.fcw-chat-btn{width:56px;height:56px}}";
     document.head.appendChild(style);
@@ -251,10 +261,166 @@
         }
     }
 
+    // Web and e-mail addresses in a message; mirrors Support\MessageFormatter.
+    var LINK_PATTERN = /(https?:\/\/[^\s<>"]+[^\s<>".,;:!?)\]'»”])|(www\.[^\s<>"]+[^\s<>".,;:!?)\]'»”])|([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/g;
+
+    function youtubeVideo(id, href) {
+        return {
+            url: href,
+            embed: "https://www.youtube-nocookie.com/embed/" + id,
+            thumb: "https://i.ytimg.com/vi/" + id + "/hqdefault.jpg",
+        };
+    }
+
+    function vimeoVideo(id, hash, href) {
+        return {
+            url: href,
+            embed: "https://player.vimeo.com/video/" + id + (hash ? "?h=" + encodeURIComponent(hash) : ""),
+            thumb: null,
+        };
+    }
+
+    function videoOf(href) {
+        var parsed;
+        try {
+            parsed = new URL(href);
+        } catch (e) {
+            return null;
+        }
+        var host = parsed.hostname.toLowerCase().replace(/^(www\.|m\.)/, "");
+        var path = parsed.pathname;
+        var match;
+
+        if (host === "youtu.be" && (match = /^\/([A-Za-z0-9_-]{11})/.exec(path))) {
+            return youtubeVideo(match[1], href);
+        }
+        if (host === "youtube.com" || host === "youtube-nocookie.com") {
+            var v = parsed.searchParams.get("v");
+            if (path === "/watch" && v && /^[A-Za-z0-9_-]{11}$/.test(v)) {
+                return youtubeVideo(v, href);
+            }
+            if ((match = /^\/(?:shorts|embed|live)\/([A-Za-z0-9_-]{11})/.exec(path))) {
+                return youtubeVideo(match[1], href);
+            }
+        }
+        if (host === "vimeo.com" && (match = /^\/(?:channels\/[^\/]+\/)?(\d+)(?:\/([0-9a-f]+))?/.exec(path))) {
+            return vimeoVideo(match[1], match[2], href);
+        }
+        if (host === "player.vimeo.com" && (match = /^\/video\/(\d+)/.exec(path))) {
+            return vimeoVideo(match[1], parsed.searchParams.get("h"), href);
+        }
+        return null;
+    }
+
+    /**
+     * Append the text to the container as text nodes and links (never as HTML)
+     * and return the distinct YouTube / Vimeo videos it links to.
+     */
+    function renderText(container, text) {
+        var value = text === null || text === undefined ? "" : String(text);
+        var videos = [];
+        var seen = {};
+        var last = 0;
+        var match;
+
+        LINK_PATTERN.lastIndex = 0;
+        while ((match = LINK_PATTERN.exec(value)) !== null) {
+            if (match.index > last) {
+                container.appendChild(document.createTextNode(value.slice(last, match.index)));
+            }
+            var href = match[1] ? match[1] : match[2] ? "https://" + match[2] : "mailto:" + match[3];
+            var link = document.createElement("a");
+            link.className = "fcw-chat-link";
+            link.href = href;
+            link.textContent = match[0];
+            if (!match[3]) {
+                link.target = "_blank";
+                link.rel = "noopener noreferrer nofollow";
+                var video = videoOf(href);
+                if (video && !seen[video.embed]) {
+                    seen[video.embed] = true;
+                    videos.push(video);
+                }
+            }
+            container.appendChild(link);
+            last = match.index + match[0].length;
+        }
+        if (last < value.length) {
+            container.appendChild(document.createTextNode(value.slice(last)));
+        }
+        return videos;
+    }
+
+    /**
+     * A thumbnail with a play button; the player is only loaded (and starts
+     * playing) when the visitor clicks it.
+     */
+    function videoCard(video) {
+        var card = document.createElement("div");
+        card.className = "fcw-chat-video";
+
+        var play = document.createElement("button");
+        play.type = "button";
+        play.className = "fcw-chat-video-play";
+        play.setAttribute("aria-label", label("play_video", "Play video"));
+        if (video.thumb) {
+            var img = document.createElement("img");
+            img.alt = "";
+            img.loading = "lazy";
+            img.addEventListener("error", function () {
+                img.parentNode && img.parentNode.removeChild(img);
+            });
+            img.src = video.thumb;
+            play.appendChild(img);
+        }
+        var icon = document.createElement("span");
+        icon.className = "fcw-chat-video-icon";
+        icon.setAttribute("aria-hidden", "true");
+        play.appendChild(icon);
+
+        play.addEventListener("click", function () {
+            var frame = document.createElement("iframe");
+            frame.src = video.embed + (video.embed.indexOf("?") === -1 ? "?" : "&") + "autoplay=1";
+            frame.title = label("play_video", "Play video");
+            frame.setAttribute("allow", "autoplay; fullscreen; picture-in-picture; encrypted-media");
+            frame.setAttribute("allowfullscreen", "");
+            frame.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
+            card.replaceChild(frame, play);
+        });
+        card.appendChild(play);
+
+        var open = document.createElement("a");
+        open.className = "fcw-chat-video-open";
+        open.href = video.url;
+        open.target = "_blank";
+        open.rel = "noopener noreferrer nofollow";
+        open.textContent = label("open_video", "Open video") + " ↗";
+        card.appendChild(open);
+
+        return card;
+    }
+
+    // A host page whose Content-Security-Policy forbids the player keeps only the link.
+    document.addEventListener("securitypolicyviolation", function (event) {
+        var blocked = String(event.blockedURI || "");
+        if (!/youtube-nocookie\.com|player\.vimeo\.com/.test(blocked)) {
+            return;
+        }
+        var frames = panel.querySelectorAll(".fcw-chat-video iframe");
+        for (var i = 0; i < frames.length; i++) {
+            if (frames[i].src.indexOf(blocked) === 0 || blocked.indexOf(new URL(frames[i].src).origin) === 0) {
+                frames[i].parentNode.classList.add("blocked");
+            }
+        }
+    });
+
     function addBubble(type, text, id) {
         var div = document.createElement("div");
         div.className = "fcw-chat-msg " + type;
-        div.textContent = text;
+        var videos = renderText(div, text);
+        for (var v = 0; v < videos.length; v++) {
+            div.appendChild(videoCard(videos[v]));
+        }
         if (id) {
             div.setAttribute("data-id", String(id));
             // Keep server order even when history arrives after a newer message.

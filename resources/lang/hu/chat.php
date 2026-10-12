@@ -102,5 +102,7 @@ return [
         'open_chat' => 'Chat megnyitása',
         'offline' => 'Most nem vagyunk elérhetők, de hagyj üzenetet, és hamarosan válaszolunk.',
         'unread' => 'Új üzenet érkezett',
+        'play_video' => 'Videó lejátszása',
+        'open_video' => 'Videó megnyitása',
     ],
 ];

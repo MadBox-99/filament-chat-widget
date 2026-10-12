@@ -102,5 +102,7 @@ return [
         'open_chat' => 'Open chat',
         'offline' => "We're offline right now, but leave a message and we'll get back to you soon.",
         'unread' => 'New message',
+        'play_video' => 'Play video',
+        'open_video' => 'Open video',
     ],
 ];

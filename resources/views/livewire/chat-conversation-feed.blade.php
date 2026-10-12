@@ -60,7 +60,18 @@
                         'rounded-bl-sm bg-white text-gray-900 ring-1 ring-gray-200 dark:bg-white/5 dark:text-gray-100 dark:ring-white/10' => $isVisitor,
                         'rounded-br-sm bg-primary-600 text-white dark:bg-primary-500' => ! $isVisitor,
                     ])>
-                        <div class="whitespace-pre-wrap break-words">{{ $message->message }}</div>
+                        <div class="whitespace-pre-wrap break-words">{{ \Madbox99\FilamentChatWidget\Support\MessageFormatter::linkify($message->message) }}</div>
+                        @foreach (\Madbox99\FilamentChatWidget\Support\MessageFormatter::videos($message->message) as $video)
+                            <iframe
+                                src="{{ $video['embed_url'] }}"
+                                title="{{ $video['url'] }}"
+                                loading="lazy"
+                                allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                                allowfullscreen
+                                referrerpolicy="strict-origin-when-cross-origin"
+                                style="display:block;width:100%;min-width:16rem;aspect-ratio:16/9;border:0;border-radius:.5rem"
+                            ></iframe>
+                        @endforeach
                         <div @class([
                             'text-[10px] opacity-70',
                             'text-right' => ! $isVisitor,

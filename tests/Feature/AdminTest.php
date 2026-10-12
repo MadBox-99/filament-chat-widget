@@ -84,6 +84,20 @@ describe('conversation feed', function (): void {
             ->set('conversationId', $foreign->id);
     })->throws(CannotUpdateLockedPropertyException::class);
 
+    it('shows links as links and embeds linked videos', function (): void {
+        $conversation = ChatConversation::factory()->create(['team_id' => $this->team->id]);
+        ChatMessage::factory()->create([
+            'chat_conversation_id' => $conversation->id,
+            'sender_type' => ChatSenderType::Visitor,
+            'message' => 'Nézd meg: https://youtu.be/dQw4w9WgXcQ <b>',
+        ]);
+
+        Livewire::test(ChatConversationFeed::class, ['conversationId' => $conversation->id])
+            ->assertSeeHtml('<a href="https://youtu.be/dQw4w9WgXcQ" target="_blank"')
+            ->assertSeeHtml('src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"')
+            ->assertSeeHtml('&lt;b&gt;');
+    });
+
     it('refuses to mount a conversation from another tenant', function (): void {
         $foreign = inTenant($this->otherTeam, fn () => ChatConversation::factory()->create());
 

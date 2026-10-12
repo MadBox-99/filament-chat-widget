@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Links in chat messages are clickable in the widget and in the agent feed:
+  `https://` and `www.` addresses open in a new tab, e-mail addresses as
+  `mailto:`. Message text is still rendered as text, never as HTML.
+- YouTube and Vimeo links get a video card under the message. In the widget
+  it shows a thumbnail and plays in place on click (`youtube-nocookie.com`);
+  if the host page's Content-Security-Policy blocks the player, only the
+  "Open video" link remains. The agent feed embeds the player directly.
+- New widget labels: `play_video`, `open_video`.
+
 ## v0.4.1 - 2026-10-09
 
 ### Fixed
