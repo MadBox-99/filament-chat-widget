@@ -9,29 +9,28 @@ use Madbox99\FilamentChatWidget\Http\Middleware\HandleChatWidgetCors;
 
 $prefix = (string) config('filament-chat-widget.routes.prefix', 'chat');
 $middleware = (array) config('filament-chat-widget.routes.middleware', [HandleChatWidgetCors::class]);
-$throttle = (array) config('filament-chat-widget.routes.throttle', []);
 
 Route::middleware($middleware)
     ->prefix($prefix)
-    ->group(function () use ($throttle): void {
+    ->group(function (): void {
         Route::get('embed.js', EmbedScriptController::class)
-            ->middleware('throttle:'.($throttle['embed'] ?? '120,1'))
+            ->middleware('throttle:chat-widget-embed')
             ->name('chat.embed.script');
 
         Route::get('widget/{slug}', [ChatWidgetController::class, 'config'])
-            ->middleware('throttle:'.($throttle['config'] ?? '60,1'))
+            ->middleware('throttle:chat-widget-config')
             ->name('chat.widget.config');
 
         Route::post('conversations', [ChatWidgetController::class, 'start'])
-            ->middleware('throttle:'.($throttle['start'] ?? '5,1'))
+            ->middleware('throttle:chat-widget-start')
             ->name('chat.conversation.start');
 
         Route::get('conversations/{uuid}/messages', [ChatWidgetController::class, 'messages'])
-            ->middleware('throttle:'.($throttle['messages'] ?? '60,1'))
+            ->middleware('throttle:chat-widget-messages')
             ->name('chat.conversation.messages');
 
         Route::post('conversations/{uuid}/messages', [ChatWidgetController::class, 'sendMessage'])
-            ->middleware('throttle:'.($throttle['send'] ?? '20,1'))
+            ->middleware('throttle:chat-widget-send')
             ->name('chat.conversation.send');
 
         Route::options('widget/{slug}', fn () => response('', 204));

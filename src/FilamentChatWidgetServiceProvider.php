@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Madbox99\FilamentChatWidget;
 
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Madbox99\FilamentChatWidget\Contracts\ChatWidgetTenantResolver;
@@ -15,6 +18,19 @@ use Madbox99\FilamentChatWidget\Support\EloquentTenantResolver;
 
 final class FilamentChatWidgetServiceProvider extends ServiceProvider
 {
+    private const array DEFAULT_THROTTLE = [
+        'embed' => '120,1',
+        'config' => '60,1',
+        'start' => '5,1',
+        'messages' => '120,1',
+        'send' => '20,1',
+    ];
+
+    private const array DEFAULT_DAILY_LIMITS = [
+        'start' => 10,
+        'send' => 200,
+    ];
+
     public function register(): void
     {
         $this->mergeConfigFrom(
@@ -60,6 +76,7 @@ final class FilamentChatWidgetServiceProvider extends ServiceProvider
         ], 'filament-chat-widget-translations');
 
         if ((bool) config('filament-chat-widget.routes.enabled', true)) {
+            $this->registerRateLimiters();
             $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         }
 
@@ -69,6 +86,30 @@ final class FilamentChatWidgetServiceProvider extends ServiceProvider
                     ->daily()
                     ->name('filament-chat-widget:prune-conversations')
                     ->withoutOverlapping();
+            });
+        }
+    }
+
+    /**
+     * One named limiter per endpoint, keyed by endpoint and IP, so the
+     * counters stay separate. start and send also get a daily per-IP cap.
+     */
+    private function registerRateLimiters(): void
+    {
+        foreach (self::DEFAULT_THROTTLE as $name => $default) {
+            RateLimiter::for('chat-widget-'.$name, function (Request $request) use ($name, $default): array {
+                $key = 'chat-widget-'.$name.':'.$request->ip();
+                [$max, $minutes] = array_map(intval(...), explode(',', (string) config('filament-chat-widget.routes.throttle.'.$name, $default)) + [1 => 1]);
+
+                $limits = [Limit::perMinutes(max(1, $minutes), max(1, $max))->by($key)];
+
+                $daily = config('filament-chat-widget.routes.daily_limits.'.$name, self::DEFAULT_DAILY_LIMITS[$name] ?? null);
+
+                if (is_numeric($daily)) {
+                    $limits[] = Limit::perDay(max(1, (int) $daily))->by($key.':day');
+                }
+
+                return $limits;
             });
         }
     }

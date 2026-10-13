@@ -87,11 +87,25 @@ return [
         */
         'middleware' => [HandleChatWidgetCors::class],
 
+        /*
+        | Per-IP request limits as "max,minutes". Each endpoint has its own
+        | counter, so polling for messages never eats into the send quota.
+        */
         'throttle' => [
+            'embed' => '120,1',
             'config' => '60,1',
             'start' => '5,1',
             'messages' => '120,1',
             'send' => '20,1',
+        ],
+
+        /*
+        | Daily per-IP caps on top of the per-minute limits: new conversations
+        | and visitor messages one IP may create in a day. null disables a cap.
+        */
+        'daily_limits' => [
+            'start' => 10,
+            'send' => 200,
         ],
 
         /*

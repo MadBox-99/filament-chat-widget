@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.6.0 - 2026-10-13
+
+### Added
+- Daily per-IP caps on the public API: by default one IP may start 10
+  conversations and send 200 messages a day (`routes.daily_limits`, `null`
+  disables a cap). Apps with an older published config get the defaults.
+
+### Fixed
+- Each public endpoint now has its own per-IP counter. Before, all of them
+  shared one, so a minute of polling with the panel open used up the send
+  limit and the visitor's messages failed with 429.
 ## v0.5.1 - 2026-10-12
 
 ### Fixed
